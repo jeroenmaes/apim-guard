@@ -8,6 +8,12 @@ APIM Guard is an ASP.NET Core MVC application designed to simplify the managemen
   - Create, view, and delete APIs
   - Configure API endpoints and protocols
   
+- **Product Management**: Manage API Products in Azure API Management
+  - Create, view, and delete products
+  - Configure product visibility and subscription settings
+  - Set approval requirements and subscription limits
+  - Define product terms and conditions
+  
 - **Subscription Management**: Control access to your APIs
   - Create and manage API subscriptions
   - Generate and regenerate subscription keys
@@ -99,11 +105,13 @@ For more information about testing, see [ApimGuard.Tests/README.md](ApimGuard.Te
 ApimGuard/
 ├── Controllers/
 │   ├── ApiManagementController.cs     # API management operations
+│   ├── ProductsController.cs          # Product management operations
 │   ├── SubscriptionsController.cs     # Subscription management
 │   ├── AppRegistrationsController.cs  # App registration management
 │   └── HomeController.cs              # Home page
 ├── Models/
 │   ├── ApiInfo.cs                     # API model
+│   ├── ProductInfo.cs                 # Product model
 │   ├── SubscriptionInfo.cs            # Subscription model
 │   ├── AppRegistrationInfo.cs         # App registration model
 │   ├── AppSecretInfo.cs              # Secret model
@@ -111,6 +119,7 @@ ApimGuard/
 │   └── AzureConfiguration.cs          # Azure config model
 └── Views/
     ├── ApiManagement/                 # API management views
+    ├── Products/                      # Product management views
     ├── Subscriptions/                 # Subscription views
     ├── AppRegistrations/              # App registration views
     └── Home/                          # Home page views

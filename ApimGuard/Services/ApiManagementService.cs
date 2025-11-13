@@ -420,4 +420,133 @@ public class ApiManagementService : IApiManagementService
         
         return applicationIds;
     }
+
+    public async Task<List<ProductInfo>> GetProductsAsync()
+    {
+        try
+        {
+            var apimService = GetApimService();
+            var products = apimService.GetApiManagementProducts();
+            var productList = new List<ProductInfo>();
+
+            await foreach (var product in products.GetAllAsync())
+            {
+                productList.Add(new ProductInfo
+                {
+                    Id = product.Data.Name,
+                    Name = product.Data.Name,
+                    DisplayName = product.Data.DisplayName ?? string.Empty,
+                    Description = product.Data.Description,
+                    State = product.Data.State?.ToString() ?? string.Empty,
+                    SubscriptionRequired = product.Data.IsSubscriptionRequired ?? false,
+                    ApprovalRequired = product.Data.IsApprovalRequired ?? false,
+                    SubscriptionsLimit = product.Data.SubscriptionsLimit,
+                    Terms = product.Data.Terms
+                });
+            }
+
+            return productList;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving products from Azure API Management");
+            throw;
+        }
+    }
+
+    public async Task<ProductInfo?> GetProductAsync(string id)
+    {
+        try
+        {
+            var apimService = GetApimService();
+            var product = await apimService.GetApiManagementProducts().GetAsync(id);
+
+            if (product?.Value == null)
+                return null;
+
+            var productData = product.Value.Data;
+
+            return new ProductInfo
+            {
+                Id = productData.Name,
+                Name = productData.Name,
+                DisplayName = productData.DisplayName ?? string.Empty,
+                Description = productData.Description,
+                State = productData.State?.ToString() ?? string.Empty,
+                SubscriptionRequired = productData.IsSubscriptionRequired ?? false,
+                ApprovalRequired = productData.IsApprovalRequired ?? false,
+                SubscriptionsLimit = productData.SubscriptionsLimit,
+                Terms = productData.Terms
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving product {Id} from Azure API Management", id);
+            throw;
+        }
+    }
+
+    public async Task<ProductInfo> CreateProductAsync(ProductInfo product)
+    {
+        try
+        {
+            var apimService = GetApimService();
+
+            var productData = new ApiManagementProductData
+            {
+                DisplayName = product.DisplayName,
+                Description = product.Description,
+                Terms = product.Terms,
+                IsSubscriptionRequired = product.SubscriptionRequired,
+                IsApprovalRequired = product.ApprovalRequired,
+                SubscriptionsLimit = product.SubscriptionsLimit,
+                State = string.IsNullOrEmpty(product.State) ? null : 
+                    Enum.Parse<ApiManagementProductState>(product.State)
+            };
+
+            var result = await apimService.GetApiManagementProducts().CreateOrUpdateAsync(
+                Azure.WaitUntil.Completed,
+                product.Name,
+                productData
+            );
+
+            var createdProduct = result.Value;
+            return new ProductInfo
+            {
+                Id = createdProduct.Data.Name,
+                Name = createdProduct.Data.Name,
+                DisplayName = createdProduct.Data.DisplayName ?? string.Empty,
+                Description = createdProduct.Data.Description,
+                State = createdProduct.Data.State?.ToString() ?? string.Empty,
+                SubscriptionRequired = createdProduct.Data.IsSubscriptionRequired ?? false,
+                ApprovalRequired = createdProduct.Data.IsApprovalRequired ?? false,
+                SubscriptionsLimit = createdProduct.Data.SubscriptionsLimit,
+                Terms = createdProduct.Data.Terms
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating product {Name} in Azure API Management", product.Name);
+            throw;
+        }
+    }
+
+    public async Task DeleteProductAsync(string id)
+    {
+        try
+        {
+            var apimService = GetApimService();
+            var product = await apimService.GetApiManagementProducts().GetAsync(id);
+
+            if (product?.Value != null)
+            {
+                await product.Value.DeleteAsync(Azure.WaitUntil.Completed, Azure.ETag.All, deleteSubscriptions: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting product {Id} from Azure API Management", id);
+            throw;
+        }
+    }
 }
