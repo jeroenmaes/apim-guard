@@ -44,6 +44,10 @@ public class ApiManagementController : Controller
             {
                 return NotFound();
             }
+            
+            // Get products associated with this API
+            api.Products = await _apiManagementService.GetApiProductsAsync(id);
+            
             return View(api);
         }
         catch (Exception ex)
