@@ -70,10 +70,19 @@ public class ProductsControllerTests
     {
         // Arrange
         var product = new ProductInfo { Id = "product1", Name = "product1", DisplayName = "Product 1" };
+        var linkedApis = new List<ApiInfo>
+        {
+            new ApiInfo { Id = "api1", Name = "api1", DisplayName = "API 1" },
+            new ApiInfo { Id = "api2", Name = "api2", DisplayName = "API 2" }
+        };
 
         _mockApiManagementService
             .Setup(s => s.GetProductAsync("product1"))
             .ReturnsAsync(product);
+
+        _mockApiManagementService
+            .Setup(s => s.GetProductApisAsync("product1"))
+            .ReturnsAsync(linkedApis);
 
         // Act
         var result = await _controller.Details("product1");
@@ -82,6 +91,11 @@ public class ProductsControllerTests
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ProductInfo>(viewResult.Model);
         Assert.Equal("product1", model.Id);
+        
+        // Verify LinkedApis are passed via ViewBag
+        var viewBagLinkedApis = viewResult.ViewData["LinkedApis"] as List<ApiInfo>;
+        Assert.NotNull(viewBagLinkedApis);
+        Assert.Equal(2, viewBagLinkedApis.Count);
     }
 
     [Fact]
@@ -91,6 +105,9 @@ public class ProductsControllerTests
         _mockApiManagementService
             .Setup(s => s.GetProductAsync("nonexistent"))
             .ReturnsAsync((ProductInfo?)null);
+        
+        // GetProductApisAsync won't be called when product is null
+        // No need to mock it
 
         // Act
         var result = await _controller.Details("nonexistent");

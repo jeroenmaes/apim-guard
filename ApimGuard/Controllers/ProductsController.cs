@@ -44,6 +44,11 @@ public class ProductsController : Controller
             {
                 return NotFound();
             }
+            
+            // Get linked APIs for this product
+            var linkedApis = await _apiManagementService.GetProductApisAsync(id);
+            ViewBag.LinkedApis = linkedApis;
+            
             return View(product);
         }
         catch (Exception ex)
