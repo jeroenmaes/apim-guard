@@ -1,0 +1,57 @@
+@model IEnumerable<ApimGuard.Models.ProductInfo>
+
+@{
+    ViewData["Title"] = "Product Management";
+}
+
+<h1>Product Management</h1>
+<p>Manage Products in Azure API Management</p>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Product</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Display Name</th>
+            <th>State</th>
+            <th>Subscription Required</th>
+            <th>Approval Required</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.Name</td>
+                <td>@product.DisplayName</td>
+                <td>
+                    @if (product.State == "Published")
+                    {
+                        <span class="badge bg-success">@product.State</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">@product.State</span>
+                    }
+                </td>
+                <td>@(product.SubscriptionRequired ? "Yes" : "No")</td>
+                <td>@(product.ApprovalRequired ? "Yes" : "No")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Delete" asp-route-id="@product.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <p>No products found. Create a new product to get started.</p>
+    </div>
+}
