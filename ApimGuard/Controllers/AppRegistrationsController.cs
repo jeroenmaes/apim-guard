@@ -21,6 +21,7 @@ public class AppRegistrationsController : Controller
     // List all app registrations
     public async Task<IActionResult> Index()
     {
+        ViewBag.EnableDeleteOperations = _featureFlags.EnableDeleteOperations;
         try
         {
             var apps = await _graphApiService.GetApplicationsAsync();
@@ -85,6 +86,7 @@ public class AppRegistrationsController : Controller
     // Manage secrets for an app
     public async Task<IActionResult> Secrets(string id)
     {
+        ViewBag.EnableModifyOperations = _featureFlags.EnableModifyOperations;
         try
         {
             var secrets = await _graphApiService.GetApplicationSecretsAsync(id);
@@ -127,6 +129,7 @@ public class AppRegistrationsController : Controller
     // Manage certificates for an app
     public async Task<IActionResult> Certificates(string id)
     {
+        ViewBag.EnableModifyOperations = _featureFlags.EnableModifyOperations;
         try
         {
             var certificates = await _graphApiService.GetApplicationCertificatesAsync(id);

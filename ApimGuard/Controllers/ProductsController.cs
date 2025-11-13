@@ -21,6 +21,7 @@ public class ProductsController : Controller
     // List all Products
     public async Task<IActionResult> Index()
     {
+        ViewBag.EnableDeleteOperations = _featureFlags.EnableDeleteOperations;
         try
         {
             var products = await _apiManagementService.GetProductsAsync();

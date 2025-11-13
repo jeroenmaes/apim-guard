@@ -36,6 +36,7 @@ public class SubscriptionsController : Controller
     // Subscription details
     public async Task<IActionResult> Details(string id)
     {
+        ViewBag.EnableModifyOperations = _featureFlags.EnableModifyOperations;
         try
         {
             var subscription = await _apiManagementService.GetSubscriptionAsync(id);

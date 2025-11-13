@@ -21,6 +21,7 @@ public class ApiManagementController : Controller
     // List all APIs
     public async Task<IActionResult> Index()
     {
+        ViewBag.EnableDeleteOperations = _featureFlags.EnableDeleteOperations;
         try
         {
             var apis = await _apiManagementService.GetApisAsync();

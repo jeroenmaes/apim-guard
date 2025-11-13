@@ -8,9 +8,12 @@
 <h1>Manage Certificates</h1>
 <p>Manage client certificates for this app registration</p>
 
-<div class="mb-3">
-    <a asp-action="UploadCertificate" asp-route-id="@appId" class="btn btn-primary">Upload Certificate</a>
-</div>
+@if (ViewBag.EnableModifyOperations)
+{
+    <div class="mb-3">
+        <a asp-action="UploadCertificate" asp-route-id="@appId" class="btn btn-primary">Upload Certificate</a>
+    </div>
+}
 
 <table class="table table-striped">
     <thead>
