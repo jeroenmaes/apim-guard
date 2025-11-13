@@ -21,6 +21,9 @@ public class ApiInfoTests
         Assert.Equal(string.Empty, apiInfo.ServiceUrl);
         Assert.NotNull(apiInfo.Protocols);
         Assert.Empty(apiInfo.Protocols);
+        Assert.False(apiInfo.SubscriptionRequired);
+        Assert.NotNull(apiInfo.AzureAdApplicationIds);
+        Assert.Empty(apiInfo.AzureAdApplicationIds);
     }
 
     [Fact]
@@ -48,5 +51,26 @@ public class ApiInfoTests
         Assert.Equal(2, apiInfo.Protocols.Count);
         Assert.Contains("https", apiInfo.Protocols);
         Assert.Contains("http", apiInfo.Protocols);
+    }
+
+    [Fact]
+    public void ApiInfo_ShouldSetAndGetSecurityProperties()
+    {
+        // Arrange
+        var apiInfo = new ApiInfo
+        {
+            Id = "test-api",
+            Name = "test-api",
+            DisplayName = "Test API",
+            Path = "/test",
+            SubscriptionRequired = true,
+            AzureAdApplicationIds = new List<string> { "app-id-1", "app-id-2" }
+        };
+
+        // Assert
+        Assert.True(apiInfo.SubscriptionRequired);
+        Assert.Equal(2, apiInfo.AzureAdApplicationIds.Count);
+        Assert.Contains("app-id-1", apiInfo.AzureAdApplicationIds);
+        Assert.Contains("app-id-2", apiInfo.AzureAdApplicationIds);
     }
 }

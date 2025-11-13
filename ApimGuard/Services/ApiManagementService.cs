@@ -4,6 +4,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ApiManagement;
 using Azure.ResourceManager.ApiManagement.Models;
 using Microsoft.Extensions.Options;
+using System.Xml.Linq;
 using System.Net.Http.Headers;
 
 namespace ApimGuard.Services;
@@ -62,7 +63,9 @@ public class ApiManagementService : IApiManagementService
                     Path = api.Data.Path ?? string.Empty,
                     Description = api.Data.Description,
                     ServiceUrl = api.Data.ServiceUri?.ToString() ?? string.Empty,
-                    Protocols = api.Data.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>()
+                    Protocols = api.Data.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>(),
+                    SubscriptionRequired = api.Data.IsSubscriptionRequired ?? false
+                    // Note: AzureAdApplicationIds not populated in list view for performance reasons
                 });
             }
 
@@ -86,6 +89,10 @@ public class ApiManagementService : IApiManagementService
                 return null;
 
             var apiData = api.Value.Data;
+            
+            // Get Azure AD application IDs from policy
+            var azureAdAppIds = await GetAzureAdApplicationIdsFromPolicyAsync(api.Value);
+            
             return new ApiInfo
             {
                 Id = apiData.Name,
@@ -94,7 +101,9 @@ public class ApiManagementService : IApiManagementService
                 Path = apiData.Path ?? string.Empty,
                 Description = apiData.Description,
                 ServiceUrl = apiData.ServiceUri?.ToString() ?? string.Empty,
-                Protocols = apiData.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>()
+                Protocols = apiData.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>(),
+                SubscriptionRequired = apiData.IsSubscriptionRequired ?? false,
+                AzureAdApplicationIds = azureAdAppIds
             };
         }
         catch (Exception ex)
@@ -348,5 +357,67 @@ public class ApiManagementService : IApiManagementService
             _logger.LogError(ex, "Error regenerating {KeyType} key for subscription {Id}", keyType, id);
             throw;
         }
+    }
+
+    private async Task<List<string>> GetAzureAdApplicationIdsFromPolicyAsync(ApiResource api)
+    {
+        var applicationIds = new List<string>();
+        
+        try
+        {
+            // Get the API policy
+            var policies = api.GetApiPolicies();
+            await foreach (var policy in policies.GetAllAsync())
+            {
+                if (policy.Data.Value != null)
+                {
+                    // Parse the policy XML to find validate-azure-ad-token elements
+                    applicationIds.AddRange(ParseAzureAdApplicationIds(policy.Data.Value));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error retrieving API policy for {ApiId}", api.Data.Name);
+            // Don't throw - just return empty list if we can't get policies
+        }
+        
+        return applicationIds;
+    }
+
+    private List<string> ParseAzureAdApplicationIds(string policyXml)
+    {
+        var applicationIds = new List<string>();
+        
+        try
+        {
+            var doc = XDocument.Parse(policyXml);
+            
+            // Find all validate-azure-ad-token elements
+            var validateTokenElements = doc.Descendants()
+                .Where(e => e.Name.LocalName == "validate-azure-ad-token");
+            
+            foreach (var element in validateTokenElements)
+            {
+                // Look for application-id elements or tenant-id attributes
+                var appIdElements = element.Descendants()
+                    .Where(e => e.Name.LocalName == "application-id");
+                
+                foreach (var appIdElement in appIdElements)
+                {
+                    var appId = appIdElement.Value?.Trim();
+                    if (!string.IsNullOrEmpty(appId))
+                    {
+                        applicationIds.Add(appId);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error parsing policy XML for Azure AD application IDs");
+        }
+        
+        return applicationIds;
     }
 }
