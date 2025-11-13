@@ -75,6 +75,52 @@
     </div>
 </div>
 
+@{
+    var linkedApis = ViewBag.LinkedApis as List<ApimGuard.Models.ApiInfo>;
+}
+
+@if (linkedApis != null && linkedApis.Count > 0)
+{
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Linked APIs</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Display Name</th>
+                            <th>Path</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var api in linkedApis)
+                        {
+                            <tr>
+                                <td>@api.Name</td>
+                                <td>@api.DisplayName</td>
+                                <td><code>@api.Path</code></td>
+                                <td>@(api.Description ?? "N/A")</td>
+                                <td>
+                                    <a asp-controller="ApiManagement" asp-action="Details" asp-route-id="@api.Id" class="btn btn-sm btn-primary">View Details</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-info mt-3">
+        <i class="bi bi-info-circle"></i> No APIs are currently linked to this product.
+    </div>
+}
+
 <div class="mt-3">
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
     <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>

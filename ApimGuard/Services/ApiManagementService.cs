@@ -664,4 +664,42 @@ public class ApiManagementService : IApiManagementService
             throw;
         }
     }
+
+    public async Task<List<ApiInfo>> GetProductApisAsync(string productId)
+    {
+        try
+        {
+            var apimService = GetApimService();
+            var product = await apimService.GetApiManagementProducts().GetAsync(productId);
+            
+            if (product?.Value == null)
+                return new List<ApiInfo>();
+
+            var productApis = product.Value.GetProductApis();
+            var apiList = new List<ApiInfo>();
+
+            foreach (var productApi in productApis)
+            {
+                // Get the API details
+                apiList.Add(new ApiInfo
+                {
+                    Id = productApi.Name,
+                    Name = productApi.Name,
+                    DisplayName = productApi.DisplayName ?? string.Empty,
+                    Path = productApi.Path ?? string.Empty,
+                    Description = productApi.Description,
+                    ServiceUrl = productApi.ServiceUri?.ToString() ?? string.Empty,
+                    Protocols = productApi.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>(),
+                    SubscriptionRequired = productApi.IsSubscriptionRequired ?? false
+                });
+            }
+
+            return apiList;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving APIs for product {ProductId} from Azure API Management", productId);
+            throw;
+        }
+    }
 }
