@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using ApimGuard.Controllers;
 using ApimGuard.Models;
@@ -12,13 +13,16 @@ public class ProductsControllerTests
 {
     private readonly Mock<ILogger<ProductsController>> _mockLogger;
     private readonly Mock<IApiManagementService> _mockApiManagementService;
+    private readonly Mock<IOptions<FeatureFlags>> _mockFeatureFlags;
     private readonly ProductsController _controller;
 
     public ProductsControllerTests()
     {
         _mockLogger = new Mock<ILogger<ProductsController>>();
         _mockApiManagementService = new Mock<IApiManagementService>();
-        _controller = new ProductsController(_mockLogger.Object, _mockApiManagementService.Object);
+        _mockFeatureFlags = new Mock<IOptions<FeatureFlags>>();
+        _mockFeatureFlags.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = true, EnableModifyOperations = true });
+        _controller = new ProductsController(_mockLogger.Object, _mockApiManagementService.Object, _mockFeatureFlags.Object);
     }
 
     [Fact]

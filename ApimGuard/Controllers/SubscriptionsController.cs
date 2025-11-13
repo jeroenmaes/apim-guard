@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ApimGuard.Models;
 using ApimGuard.Services;
+using Microsoft.Extensions.Options;
 
 namespace ApimGuard.Controllers;
 
@@ -8,11 +9,13 @@ public class SubscriptionsController : Controller
 {
     private readonly ILogger<SubscriptionsController> _logger;
     private readonly IApiManagementService _apiManagementService;
+    private readonly FeatureFlags _featureFlags;
 
-    public SubscriptionsController(ILogger<SubscriptionsController> logger, IApiManagementService apiManagementService)
+    public SubscriptionsController(ILogger<SubscriptionsController> logger, IApiManagementService apiManagementService, IOptions<FeatureFlags> featureFlags)
     {
         _logger = logger;
         _apiManagementService = apiManagementService;
+        _featureFlags = featureFlags.Value;
     }
 
     // List all subscriptions
@@ -82,6 +85,11 @@ public class SubscriptionsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RegenerateKey(string id, string keyType)
     {
+        if (!_featureFlags.EnableModifyOperations)
+        {
+            return NotFound();
+        }
+
         try
         {
             await _apiManagementService.RegenerateSubscriptionKeyAsync(id, keyType);

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using ApimGuard.Controllers;
 using ApimGuard.Models;
@@ -13,13 +14,16 @@ public class AppRegistrationsControllerTests
 {
     private readonly Mock<ILogger<AppRegistrationsController>> _mockLogger;
     private readonly Mock<IGraphApiService> _mockGraphApiService;
+    private readonly Mock<IOptions<FeatureFlags>> _mockFeatureFlags;
     private readonly AppRegistrationsController _controller;
 
     public AppRegistrationsControllerTests()
     {
         _mockLogger = new Mock<ILogger<AppRegistrationsController>>();
         _mockGraphApiService = new Mock<IGraphApiService>();
-        _controller = new AppRegistrationsController(_mockLogger.Object, _mockGraphApiService.Object);
+        _mockFeatureFlags = new Mock<IOptions<FeatureFlags>>();
+        _mockFeatureFlags.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = true, EnableModifyOperations = true });
+        _controller = new AppRegistrationsController(_mockLogger.Object, _mockGraphApiService.Object, _mockFeatureFlags.Object);
         
         // Setup TempData for the controller
         var tempData = new TempDataDictionary(

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ApimGuard.Models;
 using ApimGuard.Services;
+using Microsoft.Extensions.Options;
 
 namespace ApimGuard.Controllers;
 
@@ -8,11 +9,13 @@ public class AppRegistrationsController : Controller
 {
     private readonly ILogger<AppRegistrationsController> _logger;
     private readonly IGraphApiService _graphApiService;
+    private readonly FeatureFlags _featureFlags;
 
-    public AppRegistrationsController(ILogger<AppRegistrationsController> logger, IGraphApiService graphApiService)
+    public AppRegistrationsController(ILogger<AppRegistrationsController> logger, IGraphApiService graphApiService, IOptions<FeatureFlags> featureFlags)
     {
         _logger = logger;
         _graphApiService = graphApiService;
+        _featureFlags = featureFlags.Value;
     }
 
     // List all app registrations
@@ -101,6 +104,12 @@ public class AppRegistrationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddSecret(string appId, string displayName, int validityMonths)
     {
+        if (!_featureFlags.EnableModifyOperations)
+        {
+            TempData["Error"] = "Modify operations are currently disabled.";
+            return RedirectToAction(nameof(Secrets), new { id = appId });
+        }
+
         try
         {
             var secret = await _graphApiService.AddApplicationSecretAsync(appId, displayName, validityMonths);
@@ -135,6 +144,11 @@ public class AppRegistrationsController : Controller
     // Upload certificate - GET
     public IActionResult UploadCertificate(string id)
     {
+        if (!_featureFlags.EnableModifyOperations)
+        {
+            return NotFound();
+        }
+
         ViewBag.AppId = id;
         return View();
     }
@@ -144,6 +158,12 @@ public class AppRegistrationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadCertificate(string appId, IFormFile certificate)
     {
+        if (!_featureFlags.EnableModifyOperations)
+        {
+            TempData["Error"] = "Modify operations are currently disabled.";
+            return RedirectToAction(nameof(Certificates), new { id = appId });
+        }
+
         if (certificate != null && certificate.Length > 0)
         {
             try
@@ -168,6 +188,11 @@ public class AppRegistrationsController : Controller
     // Delete app registration
     public async Task<IActionResult> Delete(string id)
     {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
         try
         {
             var app = await _graphApiService.GetApplicationAsync(id);
@@ -189,6 +214,11 @@ public class AppRegistrationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string id)
     {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
         try
         {
             await _graphApiService.DeleteApplicationAsync(id);

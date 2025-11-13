@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ApimGuard.Models;
 using ApimGuard.Services;
+using Microsoft.Extensions.Options;
 
 namespace ApimGuard.Controllers;
 
@@ -8,11 +9,13 @@ public class ProductsController : Controller
 {
     private readonly ILogger<ProductsController> _logger;
     private readonly IApiManagementService _apiManagementService;
+    private readonly FeatureFlags _featureFlags;
 
-    public ProductsController(ILogger<ProductsController> logger, IApiManagementService apiManagementService)
+    public ProductsController(ILogger<ProductsController> logger, IApiManagementService apiManagementService, IOptions<FeatureFlags> featureFlags)
     {
         _logger = logger;
         _apiManagementService = apiManagementService;
+        _featureFlags = featureFlags.Value;
     }
 
     // List all Products
@@ -80,6 +83,11 @@ public class ProductsController : Controller
     // Delete Product
     public async Task<IActionResult> Delete(string id)
     {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
         try
         {
             var product = await _apiManagementService.GetProductAsync(id);
@@ -100,6 +108,11 @@ public class ProductsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string id)
     {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
         try
         {
             await _apiManagementService.DeleteProductAsync(id);

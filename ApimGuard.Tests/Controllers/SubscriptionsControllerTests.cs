@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using ApimGuard.Controllers;
 using ApimGuard.Models;
@@ -12,13 +13,16 @@ public class SubscriptionsControllerTests
 {
     private readonly Mock<ILogger<SubscriptionsController>> _mockLogger;
     private readonly Mock<IApiManagementService> _mockApiManagementService;
+    private readonly Mock<IOptions<FeatureFlags>> _mockFeatureFlags;
     private readonly SubscriptionsController _controller;
 
     public SubscriptionsControllerTests()
     {
         _mockLogger = new Mock<ILogger<SubscriptionsController>>();
         _mockApiManagementService = new Mock<IApiManagementService>();
-        _controller = new SubscriptionsController(_mockLogger.Object, _mockApiManagementService.Object);
+        _mockFeatureFlags = new Mock<IOptions<FeatureFlags>>();
+        _mockFeatureFlags.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = true, EnableModifyOperations = true });
+        _controller = new SubscriptionsController(_mockLogger.Object, _mockApiManagementService.Object, _mockFeatureFlags.Object);
     }
 
     [Fact]
@@ -154,5 +158,20 @@ public class SubscriptionsControllerTests
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(_controller.Details), redirectResult.ActionName);
         Assert.Equal("sub1", redirectResult.RouteValues?["id"]);
+    }
+
+    [Fact]
+    public async Task RegenerateKey_ReturnsNotFound_WhenModifyFeatureFlagIsDisabled()
+    {
+        // Arrange
+        var mockFeatureFlagsDisabled = new Mock<IOptions<FeatureFlags>>();
+        mockFeatureFlagsDisabled.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = true, EnableModifyOperations = false });
+        var controller = new SubscriptionsController(_mockLogger.Object, _mockApiManagementService.Object, mockFeatureFlagsDisabled.Object);
+
+        // Act
+        var result = await controller.RegenerateKey("sub1", "primary");
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
     }
 }

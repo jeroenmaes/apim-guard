@@ -11,6 +11,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<AzureConfiguration>(
     builder.Configuration.GetSection("Azure"));
 
+// Configure Feature Flags
+builder.Services.Configure<FeatureFlags>(
+    builder.Configuration.GetSection("FeatureFlags"));
+
 // Register Graph API service
 builder.Services.AddScoped<IGraphApiService, GraphApiService>();
 
