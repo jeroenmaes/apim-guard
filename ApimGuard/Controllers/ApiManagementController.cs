@@ -76,13 +76,13 @@ public class ApiManagementController : Controller
                     
                     using var stream = api.SpecificationFile.OpenReadStream();
                     await _apiManagementService.CreateApiFromSpecificationAsync(api, stream, format);
-                    _logger.LogInformation($"Created API from specification: {api.DisplayName}");
+                    _logger.LogInformation("Created API from specification: {DisplayName}", api.DisplayName);
                 }
                 else
                 {
                     // Create API without specification (existing behavior)
                     await _apiManagementService.CreateApiAsync(api);
-                    _logger.LogInformation($"Created API: {api.DisplayName}");
+                    _logger.LogInformation("Created API: {DisplayName}", api.DisplayName);
                 }
                 return RedirectToAction(nameof(Index));
             }
