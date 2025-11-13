@@ -48,11 +48,14 @@
                         <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
                     </svg>
                 </button>
-                <form asp-action="RegenerateKey" method="post" class="d-inline">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <input type="hidden" name="keyType" value="primary" />
-                    <button type="submit" class="btn btn-warning">Regenerate</button>
-                </form>
+                @if (ViewBag.EnableModifyOperations)
+                {
+                    <form asp-action="RegenerateKey" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="keyType" value="primary" />
+                        <button type="submit" class="btn btn-warning">Regenerate</button>
+                    </form>
+                }
             </div>
         </div>
         <div class="mb-3">
@@ -65,11 +68,14 @@
                         <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
                     </svg>
                 </button>
-                <form asp-action="RegenerateKey" method="post" class="d-inline">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <input type="hidden" name="keyType" value="secondary" />
-                    <button type="submit" class="btn btn-warning">Regenerate</button>
-                </form>
+                @if (ViewBag.EnableModifyOperations)
+                {
+                    <form asp-action="RegenerateKey" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="keyType" value="secondary" />
+                        <button type="submit" class="btn btn-warning">Regenerate</button>
+                    </form>
+                }
             </div>
         </div>
     </div>

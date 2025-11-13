@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ApimGuard.Models;
 using ApimGuard.Services;
+using Microsoft.Extensions.Options;
 
 namespace ApimGuard.Controllers;
 
@@ -8,16 +9,19 @@ public class ApiManagementController : Controller
 {
     private readonly ILogger<ApiManagementController> _logger;
     private readonly IApiManagementService _apiManagementService;
+    private readonly FeatureFlags _featureFlags;
 
-    public ApiManagementController(ILogger<ApiManagementController> logger, IApiManagementService apiManagementService)
+    public ApiManagementController(ILogger<ApiManagementController> logger, IApiManagementService apiManagementService, IOptions<FeatureFlags> featureFlags)
     {
         _logger = logger;
         _apiManagementService = apiManagementService;
+        _featureFlags = featureFlags.Value;
     }
 
     // List all APIs
     public async Task<IActionResult> Index()
     {
+        ViewBag.EnableDeleteOperations = _featureFlags.EnableDeleteOperations;
         try
         {
             var apis = await _apiManagementService.GetApisAsync();
@@ -80,6 +84,11 @@ public class ApiManagementController : Controller
     // Delete API
     public async Task<IActionResult> Delete(string id)
     {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
         try
         {
             var api = await _apiManagementService.GetApiAsync(id);
@@ -100,6 +109,11 @@ public class ApiManagementController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string id)
     {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
         try
         {
             await _apiManagementService.DeleteApiAsync(id);

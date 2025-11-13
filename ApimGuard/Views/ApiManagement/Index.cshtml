@@ -33,7 +33,10 @@
                 <td>@string.Join(", ", api.Protocols)</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@api.Id" class="btn btn-sm btn-info">Details</a>
-                    <a asp-action="Delete" asp-route-id="@api.Id" class="btn btn-sm btn-danger">Delete</a>
+                    @if (ViewBag.EnableDeleteOperations)
+                    {
+                        <a asp-action="Delete" asp-route-id="@api.Id" class="btn btn-sm btn-danger">Delete</a>
+                    }
                 </td>
             </tr>
         }

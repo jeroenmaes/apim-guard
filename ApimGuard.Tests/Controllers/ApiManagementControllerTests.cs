@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using ApimGuard.Controllers;
 using ApimGuard.Models;
@@ -12,13 +13,16 @@ public class ApiManagementControllerTests
 {
     private readonly Mock<ILogger<ApiManagementController>> _mockLogger;
     private readonly Mock<IApiManagementService> _mockApiManagementService;
+    private readonly Mock<IOptions<FeatureFlags>> _mockFeatureFlags;
     private readonly ApiManagementController _controller;
 
     public ApiManagementControllerTests()
     {
         _mockLogger = new Mock<ILogger<ApiManagementController>>();
         _mockApiManagementService = new Mock<IApiManagementService>();
-        _controller = new ApiManagementController(_mockLogger.Object, _mockApiManagementService.Object);
+        _mockFeatureFlags = new Mock<IOptions<FeatureFlags>>();
+        _mockFeatureFlags.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = true, EnableModifyOperations = true });
+        _controller = new ApiManagementController(_mockLogger.Object, _mockApiManagementService.Object, _mockFeatureFlags.Object);
     }
 
     [Fact]
@@ -194,5 +198,35 @@ public class ApiManagementControllerTests
         // Assert
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+    }
+
+    [Fact]
+    public async Task Delete_Get_ReturnsNotFound_WhenDeleteFeatureFlagIsDisabled()
+    {
+        // Arrange
+        var mockFeatureFlagsDisabled = new Mock<IOptions<FeatureFlags>>();
+        mockFeatureFlagsDisabled.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = false, EnableModifyOperations = true });
+        var controller = new ApiManagementController(_mockLogger.Object, _mockApiManagementService.Object, mockFeatureFlagsDisabled.Object);
+
+        // Act
+        var result = await controller.Delete("api1");
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteConfirmed_ReturnsNotFound_WhenDeleteFeatureFlagIsDisabled()
+    {
+        // Arrange
+        var mockFeatureFlagsDisabled = new Mock<IOptions<FeatureFlags>>();
+        mockFeatureFlagsDisabled.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = false, EnableModifyOperations = true });
+        var controller = new ApiManagementController(_mockLogger.Object, _mockApiManagementService.Object, mockFeatureFlagsDisabled.Object);
+
+        // Act
+        var result = await controller.DeleteConfirmed("api1");
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
     }
 }

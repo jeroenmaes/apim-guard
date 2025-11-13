@@ -53,7 +53,10 @@
                     <a asp-action="Details" asp-route-id="@app.Id" class="btn btn-sm btn-info">Details</a>
                     <a asp-action="Secrets" asp-route-id="@app.Id" class="btn btn-sm btn-primary">Secrets</a>
                     <a asp-action="Certificates" asp-route-id="@app.Id" class="btn btn-sm btn-primary">Certificates</a>
-                    <a asp-action="Delete" asp-route-id="@app.Id" class="btn btn-sm btn-danger">Delete</a>
+                    @if (ViewBag.EnableDeleteOperations)
+                    {
+                        <a asp-action="Delete" asp-route-id="@app.Id" class="btn btn-sm btn-danger">Delete</a>
+                    }
                 </td>
             </tr>
         }
