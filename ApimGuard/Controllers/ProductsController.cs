@@ -65,7 +65,7 @@ public class ProductsController : Controller
             try
             {
                 await _apiManagementService.CreateProductAsync(product);
-                _logger.LogInformation($"Created product: {product.DisplayName}");
+                _logger.LogInformation("Created product: {DisplayName}", product.DisplayName);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -103,7 +103,7 @@ public class ProductsController : Controller
         try
         {
             await _apiManagementService.DeleteProductAsync(id);
-            _logger.LogInformation($"Deleted product with ID: {id}");
+            _logger.LogInformation("Deleted product with ID: {Id}", id);
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
