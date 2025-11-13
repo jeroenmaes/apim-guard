@@ -8,6 +8,7 @@ public interface IApiManagementService
     Task<List<ApiInfo>> GetApisAsync();
     Task<ApiInfo?> GetApiAsync(string id);
     Task<ApiInfo> CreateApiAsync(ApiInfo api);
+    Task<ApiInfo> CreateApiFromSpecificationAsync(ApiInfo api, Stream specificationContent, string specificationFormat);
     Task DeleteApiAsync(string id);
     Task<string?> GetApiDefinitionAsync(string id);
 

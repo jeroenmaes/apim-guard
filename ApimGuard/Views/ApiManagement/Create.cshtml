@@ -8,35 +8,63 @@
 
 <div class="row">
     <div class="col-md-8">
-        <form asp-action="Create" method="post">
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="form-label"></label>
-                <input asp-for="Name" class="form-control" placeholder="api-name" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div class="alert alert-info mb-3">
+                <strong>Choose one:</strong> Either upload an OpenAPI/Swagger specification file, or manually enter API details below.
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="DisplayName" class="form-label"></label>
-                <input asp-for="DisplayName" class="form-control" placeholder="API Display Name" />
-                <span asp-validation-for="DisplayName" class="text-danger"></span>
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Import from Specification File</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="SpecificationFile" class="form-label">OpenAPI/Swagger Specification File</label>
+                        <input asp-for="SpecificationFile" type="file" class="form-control" accept=".json,.yaml,.yml,.xml" />
+                        <small class="form-text text-muted">Upload an OpenAPI (JSON/YAML), Swagger (JSON), WADL (XML), or WSDL file</small>
+                        <span asp-validation-for="SpecificationFile" class="text-danger"></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Path" class="form-label"></label>
-                <input asp-for="Path" class="form-control" placeholder="/api/path" />
-                <span asp-validation-for="Path" class="text-danger"></span>
-            </div>
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">API Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" placeholder="api-name" />
+                        <small class="form-text text-muted">Unique identifier for the API (lowercase, no spaces)</small>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="ServiceUrl" class="form-label"></label>
-                <input asp-for="ServiceUrl" class="form-control" placeholder="https://backend.example.com" />
-                <span asp-validation-for="ServiceUrl" class="text-danger"></span>
-            </div>
+                    <div class="form-group mb-3">
+                        <label asp-for="DisplayName" class="form-label"></label>
+                        <input asp-for="DisplayName" class="form-control" placeholder="API Display Name" />
+                        <span asp-validation-for="DisplayName" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Description" class="form-label"></label>
-                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
+                    <div class="form-group mb-3">
+                        <label asp-for="Path" class="form-label"></label>
+                        <input asp-for="Path" class="form-control" placeholder="/api/path" />
+                        <small class="form-text text-muted">URL path for the API (e.g., /api/v1/products)</small>
+                        <span asp-validation-for="Path" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="ServiceUrl" class="form-label">Service URL (Optional)</label>
+                        <input asp-for="ServiceUrl" class="form-control" placeholder="https://backend.example.com" />
+                        <small class="form-text text-muted">Backend service URL (optional if using specification file)</small>
+                        <span asp-validation-for="ServiceUrl" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group mb-3">
