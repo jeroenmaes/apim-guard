@@ -29,3 +29,40 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Table Grid Enhancements */
+.table-grid thead th.sortable {
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.table-grid thead th.sortable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-grid thead th .sort-icon {
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.table-grid thead th .sort-icon svg {
+  opacity: 0.3;
+  transition: all 0.2s ease;
+}
+
+.table-grid thead th:hover .sort-icon svg {
+  opacity: 0.6;
+}
+
+.table-grid tbody tr {
+  transition: opacity 0.2s ease;
+}
+
+.table-grid-search {
+  margin-top: 1rem;
+}
+
+.table-grid-results-info {
+  line-height: 38px;
+  display: inline-block;
+}
