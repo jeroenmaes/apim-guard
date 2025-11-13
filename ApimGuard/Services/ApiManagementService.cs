@@ -157,6 +157,81 @@ public class ApiManagementService : IApiManagementService
         }
     }
 
+    public async Task<ApiInfo> CreateApiFromSpecificationAsync(ApiInfo api, Stream specificationContent, string specificationFormat)
+    {
+        try
+        {
+            var apimService = GetApimService();
+
+            // Read the specification content
+            using var reader = new StreamReader(specificationContent);
+            var specContent = await reader.ReadToEndAsync();
+
+            // Determine the content format and value
+            var contentFormat = MapSpecificationFormat(specificationFormat);
+            var apiData = new ApiCreateOrUpdateContent
+            {
+                DisplayName = api.DisplayName,
+                Path = api.Path,
+                Description = api.Description,
+                Protocols =
+                {
+                    ApiOperationInvokableProtocol.Https,
+                    ApiOperationInvokableProtocol.Http,
+                },
+                Format = contentFormat,
+                Value = specContent,
+                ServiceUri = string.IsNullOrEmpty(api.ServiceUrl) ? null : new Uri(api.ServiceUrl)
+            };
+                       
+            var result = await apimService.GetApis().CreateOrUpdateAsync(
+                Azure.WaitUntil.Completed,
+                api.Name,
+                apiData
+            );
+
+            var createdApi = result.Value;
+            return new ApiInfo
+            {
+                Id = createdApi.Data.Name,
+                Name = createdApi.Data.Name,
+                DisplayName = createdApi.Data.DisplayName ?? string.Empty,
+                Path = createdApi.Data.Path ?? string.Empty,
+                Description = createdApi.Data.Description,
+                ServiceUrl = createdApi.Data.ServiceUri?.ToString() ?? string.Empty,
+                Protocols = createdApi.Data.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>()
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating API {Name} from specification in Azure API Management", api.Name);
+            throw;
+        }
+    }
+
+    private ContentFormat MapSpecificationFormat(string format)
+    {
+        return format?.ToLowerInvariant() switch
+        {
+            "openapi" => ContentFormat.OpenApi,
+            "openapi+json" => ContentFormat.OpenApiJson,
+            "openapi+json-link" => ContentFormat.OpenApiJsonLink,
+            "openapi-link" => ContentFormat.OpenApiLink,
+            "swagger-json" => ContentFormat.SwaggerJson,
+            "swagger-link-json" => ContentFormat.SwaggerLinkJson,
+            "wadl-link-json" => ContentFormat.WadlLinkJson,
+            "wadl-xml" => ContentFormat.WadlXml,
+            "wsdl" => ContentFormat.Wsdl,
+            "wsdl-link" => ContentFormat.WsdlLink,
+            "graphql-link" => ContentFormat.GraphQLLink,
+            "odata" => ContentFormat.Odata,
+            "odata-link" => ContentFormat.OdataLink,
+            "grpc" => ContentFormat.Grpc,
+            "grpc-link" => ContentFormat.GrpcLink,
+            _ => ContentFormat.OpenApiJson // Default to OpenAPI JSON
+        };
+    }
+
     public async Task DeleteApiAsync(string id)
     {
         try

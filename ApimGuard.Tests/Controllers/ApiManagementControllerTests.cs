@@ -6,6 +6,8 @@ using ApimGuard.Controllers;
 using ApimGuard.Models;
 using ApimGuard.Services;
 using Xunit;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace ApimGuard.Tests.Controllers;
 
@@ -141,6 +143,118 @@ public class ApiManagementControllerTests
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal(api, viewResult.Model);
         Assert.False(_controller.ModelState.IsValid);
+    }
+
+    [Fact]
+    public async Task Create_Post_WithSpecificationFile_CreatesApiFromSpecification()
+    {
+        // Arrange
+        var specContent = "{\"openapi\":\"3.0.0\"}";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(specContent);
+        var stream = new MemoryStream(bytes);
+        var formFile = new FormFile(stream, 0, bytes.Length, "spec", "openapi.json")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/json"
+        };
+
+        var api = new ApiInfo
+        {
+            Id = "api1",
+            Name = "api1",
+            DisplayName = "API 1",
+            Path = "/api/v1",
+            SpecificationFile = formFile
+        };
+
+        _mockApiManagementService.Setup(s => s.CreateApiFromSpecificationAsync(
+            It.IsAny<ApiInfo>(),
+            It.IsAny<Stream>(),
+            It.IsAny<string>()
+        )).ReturnsAsync(api);
+
+        // Act
+        var result = await _controller.Create(api);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+        _mockApiManagementService.Verify(s => s.CreateApiFromSpecificationAsync(
+            It.IsAny<ApiInfo>(),
+            It.IsAny<Stream>(),
+            "openapi+json"
+        ), Times.Once);
+    }
+
+    [Fact]
+    public async Task Create_Post_WithoutSpecificationFile_CreatesApiNormally()
+    {
+        // Arrange
+        var api = new ApiInfo
+        {
+            Id = "api1",
+            Name = "api1",
+            DisplayName = "API 1",
+            Path = "/api/v1",
+            ServiceUrl = "https://backend.example.com",
+            SpecificationFile = null
+        };
+
+        _mockApiManagementService.Setup(s => s.CreateApiAsync(It.IsAny<ApiInfo>())).ReturnsAsync(api);
+
+        // Act
+        var result = await _controller.Create(api);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+        _mockApiManagementService.Verify(s => s.CreateApiAsync(It.IsAny<ApiInfo>()), Times.Once);
+        _mockApiManagementService.Verify(s => s.CreateApiFromSpecificationAsync(
+            It.IsAny<ApiInfo>(),
+            It.IsAny<Stream>(),
+            It.IsAny<string>()
+        ), Times.Never);
+    }
+
+    [Fact]
+    public async Task Create_Post_WithYamlSpecificationFile_UsesCorrectFormat()
+    {
+        // Arrange
+        var specContent = "openapi: 3.0.0";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(specContent);
+        var stream = new MemoryStream(bytes);
+        var formFile = new FormFile(stream, 0, bytes.Length, "spec", "openapi.yaml")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/x-yaml"
+        };
+
+        var api = new ApiInfo
+        {
+            Id = "api1",
+            Name = "api1",
+            DisplayName = "API 1",
+            Path = "/api/v1",
+            SpecificationFile = formFile
+        };
+
+        _mockApiManagementService.Setup(s => s.CreateApiFromSpecificationAsync(
+            It.IsAny<ApiInfo>(),
+            It.IsAny<Stream>(),
+            It.IsAny<string>()
+        )).ReturnsAsync(api);
+
+        // Act
+        var result = await _controller.Create(api);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+        _mockApiManagementService.Verify(s => s.CreateApiFromSpecificationAsync(
+            It.IsAny<ApiInfo>(),
+            It.IsAny<Stream>(),
+            "openapi"
+        ), Times.Once);
     }
 
     [Fact]

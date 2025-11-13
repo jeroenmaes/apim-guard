@@ -68,8 +68,22 @@ public class ApiManagementController : Controller
         {
             try
             {
-                await _apiManagementService.CreateApiAsync(api);
-                _logger.LogInformation($"Created API: {api.DisplayName}");
+                // Check if a specification file was uploaded
+                if (api.SpecificationFile != null && api.SpecificationFile.Length > 0)
+                {
+                    // Determine the format based on file extension or content type
+                    var format = DetermineSpecificationFormat(api.SpecificationFile);
+                    
+                    using var stream = api.SpecificationFile.OpenReadStream();
+                    await _apiManagementService.CreateApiFromSpecificationAsync(api, stream, format);
+                    _logger.LogInformation($"Created API from specification: {api.DisplayName}");
+                }
+                else
+                {
+                    // Create API without specification (existing behavior)
+                    await _apiManagementService.CreateApiAsync(api);
+                    _logger.LogInformation($"Created API: {api.DisplayName}");
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -79,6 +93,32 @@ public class ApiManagementController : Controller
             }
         }
         return View(api);
+    }
+
+    private string DetermineSpecificationFormat(IFormFile file)
+    {
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        var contentType = file.ContentType.ToLowerInvariant();
+
+        // Determine format based on extension and content type
+        if (extension == ".json" || contentType.Contains("json"))
+        {
+            // Could be OpenAPI or Swagger JSON
+            return "openapi+json";
+        }
+        else if (extension == ".yaml" || extension == ".yml" || contentType.Contains("yaml"))
+        {
+            // OpenAPI YAML
+            return "openapi";
+        }
+        else if (extension == ".xml" || contentType.Contains("xml"))
+        {
+            // Could be WADL or WSDL
+            return "wadl-xml";
+        }
+
+        // Default to OpenAPI JSON
+        return "openapi+json";
     }
 
     // Delete API
