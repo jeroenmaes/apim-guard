@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Upload Certificate";
+    var appId = ViewBag.AppId;
+}
+
+<h1>Upload Certificate</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="UploadCertificate" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="appId" value="@appId" />
+            
+            <div class="alert alert-info">
+                <h5>Certificate Requirements</h5>
+                <ul>
+                    <li>Supported formats: .cer, .pem, .crt</li>
+                    <li>Must be a valid X.509 certificate</li>
+                    <li>Public key only (private key should be kept secure)</li>
+                </ul>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="certificate" class="form-label">Certificate File</label>
+                <input type="file" class="form-control" id="certificate" name="certificate" accept=".cer,.pem,.crt" required />
+            </div>
+
+            <div class="form-group mb-3">
+                <button type="submit" class="btn btn-primary">Upload</button>
+                <a asp-action="Certificates" asp-route-id="@appId" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

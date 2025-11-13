@@ -1,0 +1,51 @@
+@model IEnumerable<ApimGuard.Models.SubscriptionInfo>
+
+@{
+    ViewData["Title"] = "Subscriptions";
+}
+
+<h1>Subscription Management</h1>
+<p>Manage API subscriptions and access keys</p>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Subscription</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Display Name</th>
+            <th>Scope</th>
+            <th>State</th>
+            <th>Created Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var subscription in Model)
+        {
+            <tr>
+                <td>@subscription.Name</td>
+                <td>@subscription.DisplayName</td>
+                <td>@subscription.Scope</td>
+                <td>
+                    <span class="badge bg-@(subscription.State == "active" ? "success" : "secondary")">
+                        @subscription.State
+                    </span>
+                </td>
+                <td>@subscription.CreatedDate?.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@subscription.Id" class="btn btn-sm btn-info">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <p>No subscriptions found. Create a new subscription to get started.</p>
+    </div>
+}

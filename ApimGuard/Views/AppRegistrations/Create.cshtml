@@ -1,0 +1,29 @@
+@model ApimGuard.Models.AppRegistrationInfo
+
+@{
+    ViewData["Title"] = "Create App Registration";
+}
+
+<h1>Create New App Registration</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create" method="post">
+            <div class="form-group mb-3">
+                <label asp-for="DisplayName" class="form-label"></label>
+                <input asp-for="DisplayName" class="form-control" placeholder="My Application" />
+                <span asp-validation-for="DisplayName" class="text-danger"></span>
+                <small class="form-text text-muted">A friendly name for your application</small>
+            </div>
+
+            <div class="form-group mb-3">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

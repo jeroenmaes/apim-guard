@@ -1,0 +1,64 @@
+@model IEnumerable<ApimGuard.Models.AppCertificateInfo>
+
+@{
+    ViewData["Title"] = "Manage Certificates";
+    var appId = ViewBag.AppId;
+}
+
+<h1>Manage Certificates</h1>
+<p>Manage client certificates for this app registration</p>
+
+<div class="mb-3">
+    <a asp-action="UploadCertificate" asp-route-id="@appId" class="btn btn-primary">Upload Certificate</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Display Name</th>
+            <th>Thumbprint</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var cert in Model)
+        {
+            var isExpired = cert.EndDateTime.HasValue && cert.EndDateTime.Value < DateTime.UtcNow;
+            var isExpiringSoon = cert.EndDateTime.HasValue && cert.EndDateTime.Value < DateTime.UtcNow.AddDays(30);
+            
+            <tr>
+                <td>@cert.DisplayName</td>
+                <td><code>@cert.Thumbprint</code></td>
+                <td>@cert.StartDateTime?.ToString("yyyy-MM-dd")</td>
+                <td>@cert.EndDateTime?.ToString("yyyy-MM-dd")</td>
+                <td>
+                    @if (isExpired)
+                    {
+                        <span class="badge bg-danger">Expired</span>
+                    }
+                    else if (isExpiringSoon)
+                    {
+                        <span class="badge bg-warning">Expiring Soon</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Valid</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <p>No certificates configured. Upload a certificate to get started.</p>
+    </div>
+}
+
+<div class="mt-3">
+    <a asp-action="Details" asp-route-id="@appId" class="btn btn-secondary">Back to Details</a>
+</div>

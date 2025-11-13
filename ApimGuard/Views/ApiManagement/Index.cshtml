@@ -1,0 +1,48 @@
+@model IEnumerable<ApimGuard.Models.ApiInfo>
+
+@{
+    ViewData["Title"] = "API Management";
+}
+
+<h1>API Management</h1>
+<p>Manage APIs in Azure API Management</p>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New API</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Display Name</th>
+            <th>Path</th>
+            <th>Service URL</th>
+            <th>Protocols</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var api in Model)
+        {
+            <tr>
+                <td>@api.Name</td>
+                <td>@api.DisplayName</td>
+                <td>@api.Path</td>
+                <td>@api.ServiceUrl</td>
+                <td>@string.Join(", ", api.Protocols)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@api.Id" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Delete" asp-route-id="@api.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <p>No APIs found. Create a new API to get started.</p>
+    </div>
+}
