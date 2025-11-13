@@ -106,7 +106,6 @@ public class AppRegistrationsController : Controller
             var secret = await _graphApiService.AddApplicationSecretAsync(appId, displayName, validityMonths);
             _logger.LogInformation("Added secret '{DisplayName}' to app: {AppId}", displayName, appId);
             TempData["SecretValue"] = secret.SecretValue;
-            TempData["Success"] = $"Secret '{displayName}' added successfully. Please save the secret value as it won't be shown again.";
         }
         catch (Exception ex)
         {
