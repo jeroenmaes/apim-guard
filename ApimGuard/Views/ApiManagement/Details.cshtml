@@ -69,6 +69,9 @@
             </dd>
         </dl>
     </div>
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
 </div>
 
 <div class="mt-4">
@@ -79,10 +82,7 @@
     </div>
 </div>
 
-<div class="mt-3">
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
-</div>
+
 
 @section Scripts {
     <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
