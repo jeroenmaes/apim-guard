@@ -112,4 +112,23 @@ public class ApiManagementController : Controller
             return RedirectToAction(nameof(Index));
         }
     }
+
+    // Get API Definition (OpenAPI/Swagger)
+    public async Task<IActionResult> GetDefinition(string id)
+    {
+        try
+        {
+            var definition = await _apiManagementService.GetApiDefinitionAsync(id);
+            if (definition == null)
+            {
+                return NotFound();
+            }
+            return Content(definition, "application/json");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving API definition for {Id}", id);
+            return NotFound();
+        }
+    }
 }

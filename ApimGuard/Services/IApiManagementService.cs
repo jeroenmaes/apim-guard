@@ -9,6 +9,7 @@ public interface IApiManagementService
     Task<ApiInfo?> GetApiAsync(string id);
     Task<ApiInfo> CreateApiAsync(ApiInfo api);
     Task DeleteApiAsync(string id);
+    Task<string?> GetApiDefinitionAsync(string id);
 
     // Subscription Management
     Task<List<SubscriptionInfo>> GetSubscriptionsAsync();
