@@ -6,6 +6,7 @@ APIM Guard is an ASP.NET Core MVC application designed to simplify the managemen
 
 - **API Management**: Manage APIs registered in Azure API Management
   - Create, view, and delete APIs
+  - Import APIs from OpenAPI/Swagger specification files
   - Configure API endpoints and protocols
   
 - **Product Management**: Manage API Products in Azure API Management
@@ -81,6 +82,63 @@ Update the `appsettings.json` file with your Azure configuration:
    ```
 
 6. Open your browser and navigate to `https://localhost:5001`
+
+## Using the API Import Feature
+
+APIM Guard supports importing APIs from OpenAPI/Swagger specification files. This allows you to quickly create APIs with their operations and schemas already defined.
+
+### Supported Formats
+
+- OpenAPI 3.0 (JSON or YAML)
+- OpenAPI 2.0 / Swagger (JSON)
+- WADL (XML)
+- WSDL (XML)
+
+### How to Import an API
+
+1. Navigate to the "Create API" page
+2. In the "Import from Specification File" section, click "Choose File"
+3. Select your OpenAPI/Swagger specification file (`.json`, `.yaml`, `.yml`, or `.xml`)
+4. Fill in the required API details:
+   - **Name**: Unique identifier (lowercase, no spaces)
+   - **Display Name**: Human-readable name
+   - **Path**: URL path for the API (e.g., `/api/v1/products`)
+   - **Service URL**: (Optional) Backend service URL if not specified in the file
+   - **Description**: (Optional) API description
+5. Click "Create"
+
+The API will be created with all operations, parameters, and schemas defined in the specification file.
+
+### Example OpenAPI Specification
+
+Here's a minimal OpenAPI 3.0 specification example:
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sample API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/v1"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Get all users",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 ## Running Tests
 
