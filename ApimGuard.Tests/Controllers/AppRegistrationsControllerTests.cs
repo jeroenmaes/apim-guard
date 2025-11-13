@@ -110,4 +110,71 @@ public class AppRegistrationsControllerTests
         Assert.Equal(2, model.Count);
         Assert.Equal(appId, viewResult.ViewData["AppId"]);
     }
+
+    [Fact]
+    public async Task DetailsByAppId_RedirectsToDetails_WhenAppIsFound()
+    {
+        // Arrange
+        var clientAppId = "12345678-1234-1234-1234-123456789abc";
+        var objectId = "object-id-123";
+        var mockApp = new AppRegistrationInfo
+        {
+            Id = objectId,
+            AppId = clientAppId,
+            DisplayName = "Test App"
+        };
+
+        _mockGraphApiService
+            .Setup(s => s.GetApplicationByAppIdAsync(clientAppId))
+            .ReturnsAsync(mockApp);
+
+        // Act
+        var result = await _controller.DetailsByAppId(clientAppId);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Details), redirectResult.ActionName);
+        Assert.Equal(objectId, redirectResult.RouteValues?["id"]);
+        Assert.Null(_controller.TempData["Error"]);
+    }
+
+    [Fact]
+    public async Task DetailsByAppId_RedirectsToIndex_WhenAppNotFound()
+    {
+        // Arrange
+        var clientAppId = "12345678-1234-1234-1234-123456789abc";
+
+        _mockGraphApiService
+            .Setup(s => s.GetApplicationByAppIdAsync(clientAppId))
+            .ReturnsAsync((AppRegistrationInfo?)null);
+
+        // Act
+        var result = await _controller.DetailsByAppId(clientAppId);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+        Assert.NotNull(_controller.TempData["Error"]);
+        Assert.Contains(clientAppId, _controller.TempData["Error"]?.ToString());
+    }
+
+    [Fact]
+    public async Task DetailsByAppId_RedirectsToIndex_WhenExceptionOccurs()
+    {
+        // Arrange
+        var clientAppId = "12345678-1234-1234-1234-123456789abc";
+
+        _mockGraphApiService
+            .Setup(s => s.GetApplicationByAppIdAsync(clientAppId))
+            .ThrowsAsync(new Exception("Test exception"));
+
+        // Act
+        var result = await _controller.DetailsByAppId(clientAppId);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+        Assert.NotNull(_controller.TempData["Error"]);
+        Assert.Equal("Failed to retrieve app registration.", _controller.TempData["Error"]);
+    }
 }

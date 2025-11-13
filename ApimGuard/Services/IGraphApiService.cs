@@ -6,6 +6,7 @@ public interface IGraphApiService
 {
     Task<List<AppRegistrationInfo>> GetApplicationsAsync();
     Task<AppRegistrationInfo?> GetApplicationAsync(string id);
+    Task<AppRegistrationInfo?> GetApplicationByAppIdAsync(string appId);
     Task<AppRegistrationInfo> CreateApplicationAsync(string displayName, List<string>? redirectUris = null);
     Task DeleteApplicationAsync(string id);
     Task<List<AppSecretInfo>> GetApplicationSecretsAsync(string id);

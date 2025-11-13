@@ -55,6 +55,28 @@ public class AppRegistrationsController : Controller
         }
     }
 
+    // Navigate to app registration details by AppId (client application ID)
+    public async Task<IActionResult> DetailsByAppId(string appId)
+    {
+        try
+        {
+            var app = await _graphApiService.GetApplicationByAppIdAsync(appId);
+            if (app == null)
+            {
+                TempData["Error"] = $"No app registration found with client application ID: {appId}";
+                return RedirectToAction(nameof(Index));
+            }
+            // Redirect to the regular Details action with the object ID
+            return RedirectToAction(nameof(Details), new { id = app.Id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving app registration by AppId {AppId}", appId);
+            TempData["Error"] = "Failed to retrieve app registration.";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
     // Create new app registration - GET
     public IActionResult Create()
     {

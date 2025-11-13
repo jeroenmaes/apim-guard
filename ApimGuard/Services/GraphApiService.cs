@@ -94,6 +94,49 @@ public class GraphApiService : IGraphApiService
         }
     }
 
+    public async Task<AppRegistrationInfo?> GetApplicationByAppIdAsync(string appId)
+    {
+        try
+        {
+            // Query applications filtering by appId (client application ID)
+            var applications = await _graphClient.Applications
+                .GetAsync(config =>
+                {
+                    config.QueryParameters.Filter = $"appId eq '{appId}'";
+                });
+
+            var app = applications?.Value?.FirstOrDefault();
+            if (app == null)
+                return null;
+
+            var redirectUris = new List<string>();
+            if (app.Web?.RedirectUris != null)
+            {
+                redirectUris.AddRange(app.Web.RedirectUris);
+            }
+            if (app.PublicClient?.RedirectUris != null)
+            {
+                redirectUris.AddRange(app.PublicClient.RedirectUris);
+            }
+
+            return new AppRegistrationInfo
+            {
+                Id = app.Id ?? string.Empty,
+                AppId = app.AppId ?? string.Empty,
+                DisplayName = app.DisplayName ?? string.Empty,
+                CreatedDateTime = app.CreatedDateTime?.DateTime,
+                RedirectUris = redirectUris,
+                HasSecrets = app.PasswordCredentials?.Any() ?? false,
+                HasCertificates = app.KeyCredentials?.Any() ?? false
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving application by AppId {AppId} from Microsoft Graph", appId);
+            throw;
+        }
+    }
+
     public async Task<AppRegistrationInfo> CreateApplicationAsync(string displayName, List<string>? redirectUris = null)
     {
         try

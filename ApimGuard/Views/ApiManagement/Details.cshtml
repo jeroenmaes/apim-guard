@@ -57,7 +57,11 @@
                         <ul class="mt-1">
                             @foreach (var appId in Model.AzureAdClientApplicationIds)
                             {
-                                <li><code>@appId</code></li>
+                                <li>
+                                    <a asp-controller="AppRegistrations" asp-action="DetailsByAppId" asp-route-appId="@appId" class="text-decoration-none">
+                                        <code>@appId</code>
+                                    </a>
+                                </li>
                             }
                         </ul>
                     </div>
