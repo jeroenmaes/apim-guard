@@ -166,6 +166,42 @@ public class ApiManagementService : IApiManagementService
         }
     }
 
+    public async Task<string?> GetApiDefinitionAsync(string id)
+    {
+        try
+        {
+            var apimService = GetApimService();
+            var api = await apimService.GetApis().GetAsync(id);
+
+            if (api?.Value == null)
+                return null;
+
+            // Try to get OpenAPI schema export
+            var schemas = api.Value.GetApiSchemas();
+            await foreach (var schema in schemas.GetAllAsync())
+            {
+                // Look for OpenAPI schemas (openapi+json or openapi+json-link)
+                if (schema.Data.ContentType?.Contains("openapi") == true ||
+                    schema.Data.ContentType?.Contains("swagger") == true)
+                {
+                    // Return the schema document value
+                    if (!string.IsNullOrEmpty(schema.Data.Value))
+                    {
+                        return schema.Data.Value;
+                    }
+                }
+            }
+
+            _logger.LogWarning("No OpenAPI/Swagger schema found for API {Id}", id);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving API definition for {Id} from Azure API Management", id);
+            throw;
+        }
+    }
+
     public async Task<List<SubscriptionInfo>> GetSubscriptionsAsync()
     {
         try
