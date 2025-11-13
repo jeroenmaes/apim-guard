@@ -1,0 +1,37 @@
+@model ApimGuard.Models.ApiInfo
+
+@{
+    ViewData["Title"] = "API Details";
+}
+
+<h1>API Details</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Model.DisplayName</h5>
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Path</dt>
+            <dd class="col-sm-9">@Model.Path</dd>
+
+            <dt class="col-sm-3">Service URL</dt>
+            <dd class="col-sm-9">@Model.ServiceUrl</dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">@(Model.Description ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Protocols</dt>
+            <dd class="col-sm-9">@string.Join(", ", Model.Protocols)</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+</div>

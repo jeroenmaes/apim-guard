@@ -1,0 +1,71 @@
+@model ApimGuard.Models.AppRegistrationInfo
+
+@{
+    ViewData["Title"] = "App Registration Details";
+}
+
+<h1>App Registration Details</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Model.DisplayName</h5>
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Application ID</dt>
+            <dd class="col-sm-9"><code>@Model.AppId</code></dd>
+
+            <dt class="col-sm-3">Created Date</dt>
+            <dd class="col-sm-9">@Model.CreatedDateTime?.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+            <dt class="col-sm-3">Has Secrets</dt>
+            <dd class="col-sm-9">
+                @if (Model.HasSecrets)
+                {
+                    <span class="badge bg-success">Yes</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">No</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Has Certificates</dt>
+            <dd class="col-sm-9">
+                @if (Model.HasCertificates)
+                {
+                    <span class="badge bg-success">Yes</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">No</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Redirect URIs</dt>
+            <dd class="col-sm-9">
+                @if (Model.RedirectUris.Any())
+                {
+                    <ul>
+                        @foreach (var uri in Model.RedirectUris)
+                        {
+                            <li><code>@uri</code></li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span class="text-muted">None configured</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <a asp-action="Secrets" asp-route-id="@Model.Id" class="btn btn-primary">Manage Secrets</a>
+    <a asp-action="Certificates" asp-route-id="@Model.Id" class="btn btn-primary">Manage Certificates</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+</div>

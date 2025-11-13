@@ -1,0 +1,68 @@
+@model ApimGuard.Models.SubscriptionInfo
+
+@{
+    ViewData["Title"] = "Subscription Details";
+}
+
+<h1>Subscription Details</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Model.DisplayName</h5>
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Scope</dt>
+            <dd class="col-sm-9">@Model.Scope</dd>
+
+            <dt class="col-sm-3">State</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-@(Model.State == "active" ? "success" : "secondary")">
+                    @Model.State
+                </span>
+            </dd>
+
+            <dt class="col-sm-3">Created Date</dt>
+            <dd class="col-sm-9">@Model.CreatedDate?.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+
+            <dt class="col-sm-3">Expiration Date</dt>
+            <dd class="col-sm-9">@(Model.ExpirationDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title">Access Keys</h5>
+        <div class="mb-3">
+            <label class="form-label"><strong>Primary Key:</strong></label>
+            <div class="input-group">
+                <input type="password" class="form-control" value="@Model.PrimaryKey" readonly />
+                <form asp-action="RegenerateKey" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="keyType" value="primary" />
+                    <button type="submit" class="btn btn-warning">Regenerate</button>
+                </form>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label"><strong>Secondary Key:</strong></label>
+            <div class="input-group">
+                <input type="password" class="form-control" value="@Model.SecondaryKey" readonly />
+                <form asp-action="RegenerateKey" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="keyType" value="secondary" />
+                    <button type="submit" class="btn btn-warning">Regenerate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

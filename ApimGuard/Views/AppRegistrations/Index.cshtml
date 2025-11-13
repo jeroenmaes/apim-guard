@@ -1,0 +1,68 @@
+@model IEnumerable<ApimGuard.Models.AppRegistrationInfo>
+
+@{
+    ViewData["Title"] = "App Registrations";
+}
+
+<h1>App Registration Management</h1>
+<p>Manage Entra ID App Registrations with secrets and certificates</p>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New App Registration</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Display Name</th>
+            <th>Application ID</th>
+            <th>Created Date</th>
+            <th>Secrets</th>
+            <th>Certificates</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var app in Model)
+        {
+            <tr>
+                <td>@app.DisplayName</td>
+                <td><code>@app.AppId</code></td>
+                <td>@app.CreatedDateTime?.ToString("yyyy-MM-dd")</td>
+                <td>
+                    @if (app.HasSecrets)
+                    {
+                        <span class="badge bg-success">Yes</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">No</span>
+                    }
+                </td>
+                <td>
+                    @if (app.HasCertificates)
+                    {
+                        <span class="badge bg-success">Yes</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">No</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@app.Id" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Secrets" asp-route-id="@app.Id" class="btn btn-sm btn-primary">Secrets</a>
+                    <a asp-action="Certificates" asp-route-id="@app.Id" class="btn btn-sm btn-primary">Certificates</a>
+                    <a asp-action="Delete" asp-route-id="@app.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <p>No app registrations found. Create a new app registration to get started.</p>
+    </div>
+}

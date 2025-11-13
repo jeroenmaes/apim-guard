@@ -1,0 +1,53 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to APIM Guard</h1>
+    <p class="lead">Manage your Azure API Management and Entra ID App Registrations in one place</p>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">API Management</h5>
+                <p class="card-text">Manage APIs registered in Azure API Management. Create, update, and delete APIs to secure your services.</p>
+                <a asp-controller="ApiManagement" asp-action="Index" class="btn btn-primary">Manage APIs</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Subscriptions</h5>
+                <p class="card-text">Manage API subscriptions and keys. Control access to your APIs through subscription management.</p>
+                <a asp-controller="Subscriptions" asp-action="Index" class="btn btn-primary">Manage Subscriptions</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">App Registrations</h5>
+                <p class="card-text">Manage Entra ID App Registrations with support for both secrets and certificates for OAuth2 authentication.</p>
+                <a asp-controller="AppRegistrations" asp-action="Index" class="btn btn-primary">Manage App Registrations</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="alert alert-info" role="alert">
+            <h5>About APIM Guard</h5>
+            <p>APIM Guard is designed to simplify the management of OAuth2-secured APIs in Azure API Management by providing a unified interface for:</p>
+            <ul>
+                <li>Managing APIs and their configurations</li>
+                <li>Managing API subscriptions and access keys</li>
+                <li>Creating and managing Entra ID App Registrations</li>
+                <li>Managing client secrets and certificates for App Registrations</li>
+            </ul>
+        </div>
+    </div>
+</div>
