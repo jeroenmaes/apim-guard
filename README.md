@@ -19,6 +19,12 @@ APIM Guard is an ASP.NET Core MVC application designed to simplify the managemen
   - Upload and manage client certificates
   - Support for OAuth2 authentication flows
 
+- **Audit Logging**: Comprehensive auditing of user interactions
+  - Automatic capture of all HTTP requests
+  - Track user actions, IP addresses, and timestamps
+  - In-memory storage for audit entries
+  - Query audit logs by date range or user
+
 ## Prerequisites
 
 - .NET 9.0 SDK
@@ -133,7 +139,8 @@ ApimGuard.Tests/
 - Integration with Microsoft Graph API for Entra ID operations
 - Authentication and authorization
 - Role-based access control
-- Audit logging
+- Persistent storage for audit logs (database integration)
+- Audit log viewer UI
 - API versioning support
 - Advanced certificate management
 - Export/Import configurations

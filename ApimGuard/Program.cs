@@ -1,5 +1,6 @@
 using ApimGuard.Models;
 using ApimGuard.Services;
+using ApimGuard.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,9 @@ builder.Services.AddScoped<IGraphApiService, GraphApiService>();
 // Register API Management service
 builder.Services.AddScoped<IApiManagementService, ApiManagementService>();
 
+// Register Audit service
+builder.Services.AddSingleton<IAuditService, AuditService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,6 +34,9 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthorization();
+
+// Use audit middleware
+app.UseMiddleware<AuditMiddleware>();
 
 app.MapStaticAssets();
 
