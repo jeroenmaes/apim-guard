@@ -13,6 +13,9 @@ builder.Services.Configure<AzureConfiguration>(
 // Register Graph API service
 builder.Services.AddScoped<IGraphApiService, GraphApiService>();
 
+// Register API Management service
+builder.Services.AddScoped<IApiManagementService, ApiManagementService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

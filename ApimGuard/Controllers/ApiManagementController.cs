@@ -1,53 +1,52 @@
 using Microsoft.AspNetCore.Mvc;
 using ApimGuard.Models;
+using ApimGuard.Services;
 
 namespace ApimGuard.Controllers;
 
 public class ApiManagementController : Controller
 {
     private readonly ILogger<ApiManagementController> _logger;
+    private readonly IApiManagementService _apiManagementService;
 
-    public ApiManagementController(ILogger<ApiManagementController> logger)
+    public ApiManagementController(ILogger<ApiManagementController> logger, IApiManagementService apiManagementService)
     {
         _logger = logger;
+        _apiManagementService = apiManagementService;
     }
 
     // List all APIs
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        // This will be connected to Azure API Management in the future
-        var apis = new List<ApiInfo>
+        try
         {
-            new ApiInfo
-            {
-                Id = "sample-api-1",
-                Name = "sample-api",
-                DisplayName = "Sample API",
-                Path = "/api/sample",
-                Description = "A sample API for demonstration",
-                ServiceUrl = "https://backend.example.com",
-                Protocols = new List<string> { "https" }
-            }
-        };
-
-        return View(apis);
+            var apis = await _apiManagementService.GetApisAsync();
+            return View(apis);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving APIs");
+            return View(new List<ApiInfo>());
+        }
     }
 
     // API details
-    public IActionResult Details(string id)
+    public async Task<IActionResult> Details(string id)
     {
-        var api = new ApiInfo
+        try
         {
-            Id = id,
-            Name = "sample-api",
-            DisplayName = "Sample API",
-            Path = "/api/sample",
-            Description = "A sample API for demonstration",
-            ServiceUrl = "https://backend.example.com",
-            Protocols = new List<string> { "https" }
-        };
-
-        return View(api);
+            var api = await _apiManagementService.GetApiAsync(id);
+            if (api == null)
+            {
+                return NotFound();
+            }
+            return View(api);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving API {Id}", id);
+            return NotFound();
+        }
     }
 
     // Create new API - GET
@@ -59,36 +58,58 @@ public class ApiManagementController : Controller
     // Create new API - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Create(ApiInfo api)
+    public async Task<IActionResult> Create(ApiInfo api)
     {
         if (ModelState.IsValid)
         {
-            // Logic to create API in Azure API Management will be added here
-            _logger.LogInformation($"Creating API: {api.DisplayName}");
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _apiManagementService.CreateApiAsync(api);
+                _logger.LogInformation($"Created API: {api.DisplayName}");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating API {DisplayName}", api.DisplayName);
+                ModelState.AddModelError("", "Error creating API. Please try again.");
+            }
         }
         return View(api);
     }
 
     // Delete API
-    public IActionResult Delete(string id)
+    public async Task<IActionResult> Delete(string id)
     {
-        var api = new ApiInfo
+        try
         {
-            Id = id,
-            Name = "sample-api",
-            DisplayName = "Sample API"
-        };
-
-        return View(api);
+            var api = await _apiManagementService.GetApiAsync(id);
+            if (api == null)
+            {
+                return NotFound();
+            }
+            return View(api);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving API {Id} for deletion", id);
+            return NotFound();
+        }
     }
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public IActionResult DeleteConfirmed(string id)
+    public async Task<IActionResult> DeleteConfirmed(string id)
     {
-        // Logic to delete API from Azure API Management will be added here
-        _logger.LogInformation($"Deleting API with ID: {id}");
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _apiManagementService.DeleteApiAsync(id);
+            _logger.LogInformation($"Deleted API with ID: {id}");
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting API {Id}", id);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
