@@ -4,6 +4,11 @@ APIM Guard is an ASP.NET Core MVC application designed to simplify the managemen
 
 ## Features
 
+- **Authentication & Security**: Secure access to the application
+  - Entra ID (Azure AD) authentication required for all users
+  - OpenID Connect integration for seamless sign-in
+  - User identity management and display
+
 - **API Management**: Manage APIs registered in Azure API Management
   - Create, view, and delete APIs
   - Import APIs from OpenAPI/Swagger specification files
@@ -41,7 +46,35 @@ APIM Guard is an ASP.NET Core MVC application designed to simplify the managemen
 
 ## Configuration
 
-Update the `appsettings.json` file with your Azure configuration:
+The application requires two main configuration sections in `appsettings.json`:
+
+### Authentication Configuration
+
+Configure Entra ID (Azure AD) authentication to secure the application:
+
+```json
+{
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "your-domain.onmicrosoft.com",
+    "TenantId": "your-tenant-id",
+    "ClientId": "your-app-registration-client-id",
+    "ClientSecret": "your-app-registration-client-secret",
+    "CallbackPath": "/signin-oidc"
+  }
+}
+```
+
+**To set up authentication:**
+
+1. Create an App Registration in Entra ID (Azure Portal → Entra ID → App registrations)
+2. Set the Redirect URI to `https://localhost:5001/signin-oidc` (for local development)
+3. Create a client secret in the App Registration
+4. Update the `AzureAd` section in `appsettings.json` with your values
+
+### Azure Resource Configuration
+
+Configure access to Azure API Management and other Azure resources:
 
 ```json
 {
@@ -55,6 +88,8 @@ Update the `appsettings.json` file with your Azure configuration:
   }
 }
 ```
+
+**Note:** The `ClientId` and `ClientSecret` in the `Azure` section should be for a service principal or app registration that has appropriate permissions to manage Azure API Management resources.
 
 ## Getting Started
 
@@ -195,6 +230,7 @@ ApimGuard.Tests/
 - Azure Resource Manager API Management
 - Microsoft Graph SDK
 - Azure Identity
+- Microsoft Identity Web (Authentication)
 - Entity Framework Core (In-Memory)
 - Bootstrap 5
 - xUnit (Testing Framework)
@@ -204,8 +240,7 @@ ApimGuard.Tests/
 
 - Integration with Azure API Management REST API
 - Integration with Microsoft Graph API for Entra ID operations
-- Authentication and authorization
-- Role-based access control
+- Role-based access control (RBAC)
 - Persistent storage for audit logs (database integration)
 - Audit log viewer UI
 - API versioning support
