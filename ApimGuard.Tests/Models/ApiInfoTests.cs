@@ -22,8 +22,8 @@ public class ApiInfoTests
         Assert.NotNull(apiInfo.Protocols);
         Assert.Empty(apiInfo.Protocols);
         Assert.False(apiInfo.SubscriptionRequired);
-        Assert.NotNull(apiInfo.AzureAdApplicationIds);
-        Assert.Empty(apiInfo.AzureAdApplicationIds);
+        Assert.NotNull(apiInfo.AzureAdClientApplicationIds);
+        Assert.Empty(apiInfo.AzureAdClientApplicationIds);
     }
 
     [Fact]
@@ -64,13 +64,13 @@ public class ApiInfoTests
             DisplayName = "Test API",
             Path = "/test",
             SubscriptionRequired = true,
-            AzureAdApplicationIds = new List<string> { "app-id-1", "app-id-2" }
+            AzureAdClientApplicationIds = new List<string> { "app-id-1", "app-id-2" }
         };
 
         // Assert
         Assert.True(apiInfo.SubscriptionRequired);
-        Assert.Equal(2, apiInfo.AzureAdApplicationIds.Count);
-        Assert.Contains("app-id-1", apiInfo.AzureAdApplicationIds);
-        Assert.Contains("app-id-2", apiInfo.AzureAdApplicationIds);
+        Assert.Equal(2, apiInfo.AzureAdClientApplicationIds.Count);
+        Assert.Contains("app-id-1", apiInfo.AzureAdClientApplicationIds);
+        Assert.Contains("app-id-2", apiInfo.AzureAdClientApplicationIds);
     }
 }
