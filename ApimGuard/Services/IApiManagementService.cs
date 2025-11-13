@@ -23,4 +23,5 @@ public interface IApiManagementService
     Task<ProductInfo?> GetProductAsync(string id);
     Task<ProductInfo> CreateProductAsync(ProductInfo product);
     Task DeleteProductAsync(string id);
+    Task<List<ProductInfo>> GetApiProductsAsync(string apiId);
 }

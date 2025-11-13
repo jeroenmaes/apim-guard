@@ -67,7 +67,12 @@ public class ApiManagementControllerTests
     {
         // Arrange
         var api = new ApiInfo { Id = "api1", Name = "api1", DisplayName = "API 1" };
+        var products = new List<ProductInfo>
+        {
+            new ProductInfo { Id = "prod1", Name = "prod1", DisplayName = "Product 1" }
+        };
         _mockApiManagementService.Setup(s => s.GetApiAsync("api1")).ReturnsAsync(api);
+        _mockApiManagementService.Setup(s => s.GetApiProductsAsync("api1")).ReturnsAsync(products);
 
         // Act
         var result = await _controller.Details("api1");
@@ -76,6 +81,8 @@ public class ApiManagementControllerTests
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ApiInfo>(viewResult.Model);
         Assert.Equal("api1", model.Id);
+        Assert.Single(model.Products);
+        Assert.Equal("prod1", model.Products[0].Id);
     }
 
     [Fact]
@@ -102,6 +109,51 @@ public class ApiManagementControllerTests
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Details_ReturnsApiWithEmptyProducts_WhenNoProductsLinked()
+    {
+        // Arrange
+        var api = new ApiInfo { Id = "api1", Name = "api1", DisplayName = "API 1" };
+        var emptyProducts = new List<ProductInfo>();
+        _mockApiManagementService.Setup(s => s.GetApiAsync("api1")).ReturnsAsync(api);
+        _mockApiManagementService.Setup(s => s.GetApiProductsAsync("api1")).ReturnsAsync(emptyProducts);
+
+        // Act
+        var result = await _controller.Details("api1");
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ApiInfo>(viewResult.Model);
+        Assert.Equal("api1", model.Id);
+        Assert.Empty(model.Products);
+    }
+
+    [Fact]
+    public async Task Details_ReturnsApiWithMultipleProducts_WhenMultipleProductsLinked()
+    {
+        // Arrange
+        var api = new ApiInfo { Id = "api1", Name = "api1", DisplayName = "API 1" };
+        var products = new List<ProductInfo>
+        {
+            new ProductInfo { Id = "prod1", Name = "prod1", DisplayName = "Product 1", State = "Published" },
+            new ProductInfo { Id = "prod2", Name = "prod2", DisplayName = "Product 2", State = "NotPublished" }
+        };
+        _mockApiManagementService.Setup(s => s.GetApiAsync("api1")).ReturnsAsync(api);
+        _mockApiManagementService.Setup(s => s.GetApiProductsAsync("api1")).ReturnsAsync(products);
+
+        // Act
+        var result = await _controller.Details("api1");
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ApiInfo>(viewResult.Model);
+        Assert.Equal("api1", model.Id);
+        Assert.Equal(2, model.Products.Count);
+        Assert.Equal("prod1", model.Products[0].Id);
+        Assert.Equal("Published", model.Products[0].State);
+        Assert.Equal("prod2", model.Products[1].Id);
     }
 
     [Fact]
