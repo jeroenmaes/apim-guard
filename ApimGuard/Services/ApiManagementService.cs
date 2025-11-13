@@ -114,18 +114,14 @@ public class ApiManagementService : IApiManagementService
                 DisplayName = api.DisplayName,
                 Path = api.Path,
                 Description = api.Description,
+                Protocols =
+                {
+                    ApiOperationInvokableProtocol.Https,
+                    ApiOperationInvokableProtocol.Http,
+                },
                 ServiceUri = string.IsNullOrEmpty(api.ServiceUrl) ? null : new Uri(api.ServiceUrl)
             };
-
-            // Add protocols
-            foreach (var protocol in api.Protocols)
-            {
-                if (Enum.TryParse<ApiOperationInvokableProtocol>(protocol, true, out var parsedProtocol))
-                {
-                    apiData.Protocols.Add(parsedProtocol);
-                }
-            }
-
+                       
             var result = await apimService.GetApis().CreateOrUpdateAsync(
                 Azure.WaitUntil.Completed,
                 api.Name,
