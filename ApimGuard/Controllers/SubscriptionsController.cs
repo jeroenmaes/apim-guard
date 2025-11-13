@@ -1,53 +1,52 @@
 using Microsoft.AspNetCore.Mvc;
 using ApimGuard.Models;
+using ApimGuard.Services;
 
 namespace ApimGuard.Controllers;
 
 public class SubscriptionsController : Controller
 {
     private readonly ILogger<SubscriptionsController> _logger;
+    private readonly IApiManagementService _apiManagementService;
 
-    public SubscriptionsController(ILogger<SubscriptionsController> logger)
+    public SubscriptionsController(ILogger<SubscriptionsController> logger, IApiManagementService apiManagementService)
     {
         _logger = logger;
+        _apiManagementService = apiManagementService;
     }
 
     // List all subscriptions
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        // This will be connected to Azure API Management in the future
-        var subscriptions = new List<SubscriptionInfo>
+        try
         {
-            new SubscriptionInfo
-            {
-                Id = "sub-1",
-                Name = "sample-subscription",
-                DisplayName = "Sample Subscription",
-                Scope = "/apis/sample-api",
-                State = "active",
-                CreatedDate = DateTime.UtcNow.AddDays(-30)
-            }
-        };
-
-        return View(subscriptions);
+            var subscriptions = await _apiManagementService.GetSubscriptionsAsync();
+            return View(subscriptions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving subscriptions");
+            return View(new List<SubscriptionInfo>());
+        }
     }
 
     // Subscription details
-    public IActionResult Details(string id)
+    public async Task<IActionResult> Details(string id)
     {
-        var subscription = new SubscriptionInfo
+        try
         {
-            Id = id,
-            Name = "sample-subscription",
-            DisplayName = "Sample Subscription",
-            Scope = "/apis/sample-api",
-            State = "active",
-            PrimaryKey = "****",
-            SecondaryKey = "****",
-            CreatedDate = DateTime.UtcNow.AddDays(-30)
-        };
-
-        return View(subscription);
+            var subscription = await _apiManagementService.GetSubscriptionAsync(id);
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+            return View(subscription);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving subscription {Id}", id);
+            return NotFound();
+        }
     }
 
     // Create new subscription - GET
@@ -59,13 +58,21 @@ public class SubscriptionsController : Controller
     // Create new subscription - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Create(SubscriptionInfo subscription)
+    public async Task<IActionResult> Create(SubscriptionInfo subscription)
     {
         if (ModelState.IsValid)
         {
-            // Logic to create subscription in Azure API Management will be added here
-            _logger.LogInformation($"Creating subscription: {subscription.DisplayName}");
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _apiManagementService.CreateSubscriptionAsync(subscription);
+                _logger.LogInformation($"Created subscription: {subscription.DisplayName}");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating subscription {DisplayName}", subscription.DisplayName);
+                ModelState.AddModelError("", "Error creating subscription. Please try again.");
+            }
         }
         return View(subscription);
     }
@@ -73,10 +80,18 @@ public class SubscriptionsController : Controller
     // Regenerate keys
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult RegenerateKey(string id, string keyType)
+    public async Task<IActionResult> RegenerateKey(string id, string keyType)
     {
-        // Logic to regenerate subscription key in Azure API Management will be added here
-        _logger.LogInformation($"Regenerating {keyType} key for subscription: {id}");
-        return RedirectToAction(nameof(Details), new { id });
+        try
+        {
+            await _apiManagementService.RegenerateSubscriptionKeyAsync(id, keyType);
+            _logger.LogInformation($"Regenerated {keyType} key for subscription: {id}");
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error regenerating {KeyType} key for subscription {Id}", keyType, id);
+            return RedirectToAction(nameof(Details), new { id });
+        }
     }
 }
