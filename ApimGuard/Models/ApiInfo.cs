@@ -10,5 +10,6 @@ public class ApiInfo
     public string ServiceUrl { get; set; } = string.Empty;
     public List<string> Protocols { get; set; } = new();
     public bool SubscriptionRequired { get; set; }
-    public List<string> AzureAdApplicationIds { get; set; } = new();
+    public string AzureAdApplicationId { get; set; }
+    public List<string> AzureAdClientApplicationIds { get; set; } = new();
 }

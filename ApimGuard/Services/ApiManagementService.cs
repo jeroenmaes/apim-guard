@@ -91,7 +91,7 @@ public class ApiManagementService : IApiManagementService
             var apiData = api.Value.Data;
             
             // Get Azure AD application IDs from policy
-            var azureAdAppIds = await GetAzureAdApplicationIdsFromPolicyAsync(api.Value);
+            var azureAdClientAppIds = await GetAzureAdClientApplicationIdsFromPolicyAsync(api.Value);
             
             return new ApiInfo
             {
@@ -103,7 +103,7 @@ public class ApiManagementService : IApiManagementService
                 ServiceUrl = apiData.ServiceUri?.ToString() ?? string.Empty,
                 Protocols = apiData.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>(),
                 SubscriptionRequired = apiData.IsSubscriptionRequired ?? false,
-                AzureAdApplicationIds = azureAdAppIds
+                AzureAdClientApplicationIds = azureAdClientAppIds
             };
         }
         catch (Exception ex)
@@ -359,7 +359,7 @@ public class ApiManagementService : IApiManagementService
         }
     }
 
-    private async Task<List<string>> GetAzureAdApplicationIdsFromPolicyAsync(ApiResource api)
+    private async Task<List<string>> GetAzureAdClientApplicationIdsFromPolicyAsync(ApiResource api)
     {
         var applicationIds = new List<string>();
         

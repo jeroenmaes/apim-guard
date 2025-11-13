@@ -49,13 +49,13 @@
 
             <dt class="col-sm-3">Azure AD Token Validation</dt>
             <dd class="col-sm-9">
-                @if (Model.AzureAdApplicationIds.Any())
+                @if (Model.AzureAdClientApplicationIds.Any())
                 {
                     <span class="badge bg-success">Enabled</span>
                     <div class="mt-2">
-                        <strong>Configured Application IDs:</strong>
+                        <strong>Configured Client Application IDs:</strong>
                         <ul class="mt-1">
-                            @foreach (var appId in Model.AzureAdApplicationIds)
+                            @foreach (var appId in Model.AzureAdClientApplicationIds)
                             {
                                 <li><code>@appId</code></li>
                             }
