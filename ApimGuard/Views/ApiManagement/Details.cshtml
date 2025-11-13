@@ -31,6 +31,46 @@
     </div>
 </div>
 
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title">Security Details</h5>
+        <dl class="row">
+            <dt class="col-sm-3">Subscription Required</dt>
+            <dd class="col-sm-9">
+                @if (Model.SubscriptionRequired)
+                {
+                    <span class="badge bg-warning text-dark">Yes</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">No</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Azure AD Token Validation</dt>
+            <dd class="col-sm-9">
+                @if (Model.AzureAdApplicationIds.Any())
+                {
+                    <span class="badge bg-success">Enabled</span>
+                    <div class="mt-2">
+                        <strong>Configured Application IDs:</strong>
+                        <ul class="mt-1">
+                            @foreach (var appId in Model.AzureAdApplicationIds)
+                            {
+                                <li><code>@appId</code></li>
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Not configured</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
 <div class="mt-4">
     <h3>API Documentation</h3>
     <div id="redoc-container"></div>
