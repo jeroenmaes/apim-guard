@@ -4,6 +4,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ApiManagement;
 using Azure.ResourceManager.ApiManagement.Models;
 using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
 
 namespace ApimGuard.Services;
 
@@ -166,32 +167,46 @@ public class ApiManagementService : IApiManagementService
         }
     }
 
+    private async Task<string> GetApiExportLinkAsync(string subscriptionId,
+                                          string resourceGroupName,
+                                          string serviceName,
+                                          string apiId)
+    {
+        var credential = new ClientSecretCredential(_config.TenantId, _config.ClientId, _config.ClientSecret);
+        var token = await credential.GetTokenAsync(
+            new Azure.Core.TokenRequestContext(new[] { "https://management.azure.com/.default" }));
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token.Token);
+
+        string apiVersion = "2024-05-01"; // or whichever version you target
+        string format = "swagger-link-json"; // or openapi-link, etc
+        string url = $"https://management.azure.com/subscriptions/{subscriptionId}" +
+                     $"/resourceGroups/{resourceGroupName}/providers/Microsoft.ApiManagement" +
+                     $"/service/{serviceName}/apis/{apiId}" +
+                     $"?export=true&format={format}&api-version={apiVersion}";
+
+        var response = await client.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        // parse json to get link: json.value.link
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        string link = doc.RootElement.GetProperty("value").GetProperty("link").GetString();
+        return link;
+    }
+
     public async Task<string?> GetApiDefinitionAsync(string id)
     {
         try
         {
-            var apimService = GetApimService();
-            var api = await apimService.GetApis().GetAsync(id);
-
-            if (api?.Value == null)
-                return null;
-
-            // Try to get OpenAPI schema export
-            var schemas = api.Value.GetApiSchemas();
-            await foreach (var schema in schemas.GetAllAsync())
+            var url = await GetApiExportLinkAsync(_config.SubscriptionId, _config.ResourceGroupName, _config.ApiManagementServiceName, id);
+            var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
             {
-                // Look for OpenAPI schemas (openapi+json or openapi+json-link)
-                if (schema.Data.ContentType?.Contains("openapi") == true ||
-                    schema.Data.ContentType?.Contains("swagger") == true)
-                {
-                    // Return the schema document value
-                    if (!string.IsNullOrEmpty(schema.Data.Value))
-                    {
-                        return schema.Data.Value;
-                    }
-                }
+                var definition = await response.Content.ReadAsStringAsync();
+                return definition;
             }
-
             _logger.LogWarning("No OpenAPI/Swagger schema found for API {Id}", id);
             return null;
         }
