@@ -1,4 +1,5 @@
 using ApimGuard.Models;
+using ApimGuard.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,9 @@ builder.Services.AddControllersWithViews();
 // Configure Azure settings
 builder.Services.Configure<AzureConfiguration>(
     builder.Configuration.GetSection("Azure"));
+
+// Register Graph API service
+builder.Services.AddScoped<IGraphApiService, GraphApiService>();
 
 var app = builder.Build();
 

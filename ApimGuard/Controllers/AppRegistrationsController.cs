@@ -1,52 +1,54 @@
 using Microsoft.AspNetCore.Mvc;
 using ApimGuard.Models;
+using ApimGuard.Services;
 
 namespace ApimGuard.Controllers;
 
 public class AppRegistrationsController : Controller
 {
     private readonly ILogger<AppRegistrationsController> _logger;
+    private readonly IGraphApiService _graphApiService;
 
-    public AppRegistrationsController(ILogger<AppRegistrationsController> logger)
+    public AppRegistrationsController(ILogger<AppRegistrationsController> logger, IGraphApiService graphApiService)
     {
         _logger = logger;
+        _graphApiService = graphApiService;
     }
 
     // List all app registrations
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        // This will be connected to Microsoft Graph API in the future
-        var apps = new List<AppRegistrationInfo>
+        try
         {
-            new AppRegistrationInfo
-            {
-                Id = "app-1",
-                AppId = "12345678-1234-1234-1234-123456789012",
-                DisplayName = "Sample App Registration",
-                CreatedDateTime = DateTime.UtcNow.AddDays(-60),
-                HasSecrets = true,
-                HasCertificates = false
-            }
-        };
-
-        return View(apps);
+            var apps = await _graphApiService.GetApplicationsAsync();
+            return View(apps);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving app registrations");
+            TempData["Error"] = "Failed to retrieve app registrations. Please check your Azure configuration.";
+            return View(new List<AppRegistrationInfo>());
+        }
     }
 
     // App registration details
-    public IActionResult Details(string id)
+    public async Task<IActionResult> Details(string id)
     {
-        var app = new AppRegistrationInfo
+        try
         {
-            Id = id,
-            AppId = "12345678-1234-1234-1234-123456789012",
-            DisplayName = "Sample App Registration",
-            CreatedDateTime = DateTime.UtcNow.AddDays(-60),
-            RedirectUris = new List<string> { "https://localhost:5001/signin-oidc" },
-            HasSecrets = true,
-            HasCertificates = false
-        };
-
-        return View(app);
+            var app = await _graphApiService.GetApplicationAsync(id);
+            if (app == null)
+            {
+                return NotFound();
+            }
+            return View(app);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving app registration details for {Id}", id);
+            TempData["Error"] = "Failed to retrieve app registration details.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     // Create new app registration - GET
@@ -58,62 +60,77 @@ public class AppRegistrationsController : Controller
     // Create new app registration - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Create(AppRegistrationInfo app)
+    public async Task<IActionResult> Create(AppRegistrationInfo app)
     {
         if (ModelState.IsValid)
         {
-            // Logic to create app registration in Entra ID will be added here
-            _logger.LogInformation($"Creating app registration: {app.DisplayName}");
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var createdApp = await _graphApiService.CreateApplicationAsync(app.DisplayName, app.RedirectUris);
+                _logger.LogInformation("Created app registration: {DisplayName} with ID: {Id}", createdApp.DisplayName, createdApp.Id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating app registration: {DisplayName}", app.DisplayName);
+                ModelState.AddModelError(string.Empty, "Failed to create app registration. Please try again.");
+            }
         }
         return View(app);
     }
 
     // Manage secrets for an app
-    public IActionResult Secrets(string id)
+    public async Task<IActionResult> Secrets(string id)
     {
-        var secrets = new List<AppSecretInfo>
+        try
         {
-            new AppSecretInfo
-            {
-                Id = "secret-1",
-                DisplayName = "Production Secret",
-                StartDateTime = DateTime.UtcNow,
-                EndDateTime = DateTime.UtcNow.AddMonths(6)
-            }
-        };
-
-        ViewBag.AppId = id;
-        return View(secrets);
+            var secrets = await _graphApiService.GetApplicationSecretsAsync(id);
+            ViewBag.AppId = id;
+            return View(secrets);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving secrets for app {Id}", id);
+            TempData["Error"] = "Failed to retrieve app secrets.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     // Add new secret - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult AddSecret(string appId, string displayName, int validityMonths)
+    public async Task<IActionResult> AddSecret(string appId, string displayName, int validityMonths)
     {
-        // Logic to add secret to app registration in Entra ID will be added here
-        _logger.LogInformation($"Adding secret '{displayName}' to app: {appId}");
+        try
+        {
+            var secret = await _graphApiService.AddApplicationSecretAsync(appId, displayName, validityMonths);
+            _logger.LogInformation("Added secret '{DisplayName}' to app: {AppId}", displayName, appId);
+            TempData["SecretValue"] = secret.SecretValue;
+            TempData["Success"] = $"Secret '{displayName}' added successfully. Please save the secret value as it won't be shown again.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding secret to app {AppId}", appId);
+            TempData["Error"] = "Failed to add secret. Please try again.";
+        }
         return RedirectToAction(nameof(Secrets), new { id = appId });
     }
 
     // Manage certificates for an app
-    public IActionResult Certificates(string id)
+    public async Task<IActionResult> Certificates(string id)
     {
-        var certificates = new List<AppCertificateInfo>
+        try
         {
-            new AppCertificateInfo
-            {
-                Id = "cert-1",
-                DisplayName = "Production Certificate",
-                Thumbprint = "ABC123DEF456",
-                StartDateTime = DateTime.UtcNow,
-                EndDateTime = DateTime.UtcNow.AddYears(1)
-            }
-        };
-
-        ViewBag.AppId = id;
-        return View(certificates);
+            var certificates = await _graphApiService.GetApplicationCertificatesAsync(id);
+            ViewBag.AppId = id;
+            return View(certificates);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving certificates for app {Id}", id);
+            TempData["Error"] = "Failed to retrieve app certificates.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     // Upload certificate - GET
@@ -126,35 +143,64 @@ public class AppRegistrationsController : Controller
     // Upload certificate - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult UploadCertificate(string appId, IFormFile certificate)
+    public async Task<IActionResult> UploadCertificate(string appId, IFormFile certificate)
     {
         if (certificate != null && certificate.Length > 0)
         {
-            // Logic to upload certificate to app registration in Entra ID will be added here
-            _logger.LogInformation($"Uploading certificate to app: {appId}");
+            try
+            {
+                using var memoryStream = new MemoryStream();
+                await certificate.CopyToAsync(memoryStream);
+                var certificateData = memoryStream.ToArray();
+                
+                await _graphApiService.AddApplicationCertificateAsync(appId, certificateData, certificate.FileName);
+                _logger.LogInformation("Uploaded certificate to app: {AppId}", appId);
+                TempData["Success"] = "Certificate uploaded successfully.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading certificate to app {AppId}", appId);
+                TempData["Error"] = "Failed to upload certificate. Please try again.";
+            }
         }
         return RedirectToAction(nameof(Certificates), new { id = appId });
     }
 
     // Delete app registration
-    public IActionResult Delete(string id)
+    public async Task<IActionResult> Delete(string id)
     {
-        var app = new AppRegistrationInfo
+        try
         {
-            Id = id,
-            AppId = "12345678-1234-1234-1234-123456789012",
-            DisplayName = "Sample App Registration"
-        };
-
-        return View(app);
+            var app = await _graphApiService.GetApplicationAsync(id);
+            if (app == null)
+            {
+                return NotFound();
+            }
+            return View(app);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving app registration for deletion {Id}", id);
+            TempData["Error"] = "Failed to retrieve app registration.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public IActionResult DeleteConfirmed(string id)
+    public async Task<IActionResult> DeleteConfirmed(string id)
     {
-        // Logic to delete app registration from Entra ID will be added here
-        _logger.LogInformation($"Deleting app registration with ID: {id}");
+        try
+        {
+            await _graphApiService.DeleteApplicationAsync(id);
+            _logger.LogInformation("Deleted app registration with ID: {Id}", id);
+            TempData["Success"] = "App registration deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting app registration {Id}", id);
+            TempData["Error"] = "Failed to delete app registration. Please try again.";
+        }
         return RedirectToAction(nameof(Index));
     }
 }
