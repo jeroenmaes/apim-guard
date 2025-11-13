@@ -70,6 +70,23 @@ Update the `appsettings.json` file with your Azure configuration:
 
 6. Open your browser and navigate to `https://localhost:5001`
 
+## Running Tests
+
+The project includes comprehensive unit tests to ensure code quality and reliability.
+
+```bash
+# Run all tests
+dotnet test
+
+# Run tests with verbose output
+dotnet test --verbosity normal
+
+# Run tests with code coverage
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+For more information about testing, see [ApimGuard.Tests/README.md](ApimGuard.Tests/README.md).
+
 ## Project Structure
 
 ```
@@ -91,6 +108,11 @@ ApimGuard/
     ├── Subscriptions/                 # Subscription views
     ├── AppRegistrations/              # App registration views
     └── Home/                          # Home page views
+
+ApimGuard.Tests/
+├── Controllers/                       # Controller unit tests
+├── Models/                            # Model unit tests
+└── Services/                          # Service unit tests
 ```
 
 ## Technologies Used
@@ -102,6 +124,8 @@ ApimGuard/
 - Azure Identity
 - Entity Framework Core (In-Memory)
 - Bootstrap 5
+- xUnit (Testing Framework)
+- Moq (Mocking Framework)
 
 ## Future Enhancements
 
