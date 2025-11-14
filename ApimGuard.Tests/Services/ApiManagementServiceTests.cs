@@ -18,8 +18,10 @@ public class ApiManagementServiceTests
 <policies>
     <inbound>
         <validate-azure-ad-token tenant-id=""tenant-123"">
-            <application-id>app-id-1</application-id>
-            <application-id>app-id-2</application-id>
+            <client-application-ids>
+                <application-id>app-id-1</application-id>
+                <application-id>app-id-2</application-id>
+            </client-application-ids>
         </validate-azure-ad-token>
     </inbound>
 </policies>";
@@ -68,13 +70,15 @@ public class ApiManagementServiceTests
 <policies>
     <inbound>
         <validate-azure-ad-token tenant-id=""tenant-123"">
-            <application-id>app-id-1</application-id>
-            <application-id>app-id-2</application-id>
             <audiences>
                 <audience>api://audience-1</audience>
                 <audience>api://audience-2</audience>
                 <audience>api://audience-3</audience>
             </audiences>
+            <client-application-ids>
+                <application-id>app-id-1</application-id>
+                <application-id>app-id-2</application-id>
+            </client-application-ids>
         </validate-azure-ad-token>
     </inbound>
 </policies>";
@@ -100,16 +104,20 @@ public class ApiManagementServiceTests
 <policies>
     <inbound>
         <validate-azure-ad-token tenant-id=""tenant-123"">
-            <application-id>app-id-1</application-id>
             <audiences>
                 <audience>api://audience-1</audience>
             </audiences>
+            <client-application-ids>
+                <application-id>app-id-1</application-id>
+            </client-application-ids>
         </validate-azure-ad-token>
         <validate-azure-ad-token tenant-id=""tenant-456"">
-            <application-id>app-id-2</application-id>
             <audiences>
                 <audience>api://audience-2</audience>
             </audiences>
+            <client-application-ids>
+                <application-id>app-id-2</application-id>
+            </client-application-ids>
         </validate-azure-ad-token>
     </inbound>
 </policies>";
@@ -167,12 +175,14 @@ public class ApiManagementServiceTests
 <policies>
     <inbound>
         <validate-azure-ad-token tenant-id=""tenant-123"">
-            <application-id>  app-id-1  </application-id>
             <audiences>
                 <audience>
                     api://audience-1
                 </audience>
             </audiences>
+            <client-application-ids>
+                <application-id>  app-id-1  </application-id>
+            </client-application-ids>
         </validate-azure-ad-token>
     </inbound>
 </policies>";
@@ -195,12 +205,14 @@ public class ApiManagementServiceTests
 <policies>
     <inbound>
         <validate-azure-ad-token tenant-id=""tenant-123"">
-            <application-id></application-id>
-            <application-id>app-id-1</application-id>
             <audiences>
                 <audience></audience>
                 <audience>api://audience-1</audience>
             </audiences>
+            <client-application-ids>
+                <application-id></application-id>
+                <application-id>app-id-1</application-id>
+            </client-application-ids>
         </validate-azure-ad-token>
     </inbound>
 </policies>";

@@ -479,16 +479,22 @@ public class ApiManagementService : IApiManagementService
             
             foreach (var element in validateTokenElements)
             {
-                // Look for application-id elements
-                var appIdElements = element.Descendants()
-                    .Where(e => e.Name.LocalName == "application-id");
+                // Look for client-application-ids wrapper and its application-id child elements
+                var clientAppIdsElements = element.Descendants()
+                    .Where(e => e.Name.LocalName == "client-application-ids");
                 
-                foreach (var appIdElement in appIdElements)
+                foreach (var clientAppIdsElement in clientAppIdsElements)
                 {
-                    var appId = appIdElement.Value?.Trim();
-                    if (!string.IsNullOrEmpty(appId))
+                    var appIdElements = clientAppIdsElement.Descendants()
+                        .Where(e => e.Name.LocalName == "application-id");
+                    
+                    foreach (var appIdElement in appIdElements)
                     {
-                        applicationIds.Add(appId);
+                        var appId = appIdElement.Value?.Trim();
+                        if (!string.IsNullOrEmpty(appId))
+                        {
+                            applicationIds.Add(appId);
+                        }
                     }
                 }
                 
