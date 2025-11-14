@@ -90,8 +90,8 @@ public class ApiManagementService : IApiManagementService
 
             var apiData = api.Value.Data;
             
-            // Get Azure AD application IDs and audiences from policy
-            var (azureAdClientAppIds, audiences) = await GetAzureAdSecurityDetailsFromPolicyAsync(api.Value);
+            // Get Azure AD application IDs, audiences, and required claims from policy
+            var (azureAdClientAppIds, audiences, requiredClaims) = await GetAzureAdSecurityDetailsFromPolicyAsync(api.Value);
             
             return new ApiInfo
             {
@@ -104,7 +104,8 @@ public class ApiManagementService : IApiManagementService
                 Protocols = apiData.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>(),
                 SubscriptionRequired = apiData.IsSubscriptionRequired ?? false,
                 AzureAdClientApplicationIds = azureAdClientAppIds,
-                Audiences = audiences
+                Audiences = audiences,
+                RequiredClaims = requiredClaims
             };
         }
         catch (Exception ex)
@@ -454,10 +455,11 @@ public class ApiManagementService : IApiManagementService
         }
     }
 
-    private async Task<(List<string> applicationIds, List<string> audiences)> GetAzureAdSecurityDetailsFromPolicyAsync(ApiResource api)
+    private async Task<(List<string> applicationIds, List<string> audiences, List<RequiredClaim> requiredClaims)> GetAzureAdSecurityDetailsFromPolicyAsync(ApiResource api)
     {
         var applicationIds = new List<string>();
         var audiences = new List<string>();
+        var requiredClaims = new List<RequiredClaim>();
         
         try
         {
@@ -468,9 +470,10 @@ public class ApiManagementService : IApiManagementService
                 if (policy.Data.Value != null)
                 {
                     // Parse the policy XML to find validate-azure-ad-token elements
-                    var (appIds, auds) = ParseAzureAdSecurityDetails(policy.Data.Value);
+                    var (appIds, auds, claims) = ParseAzureAdSecurityDetails(policy.Data.Value);
                     applicationIds.AddRange(appIds);
                     audiences.AddRange(auds);
+                    requiredClaims.AddRange(claims);
                 }
             }
         }
@@ -480,13 +483,14 @@ public class ApiManagementService : IApiManagementService
             // Don't throw - just return empty lists if we can't get policies
         }
         
-        return (applicationIds, audiences);
+        return (applicationIds, audiences, requiredClaims);
     }
 
-    private (List<string> applicationIds, List<string> audiences) ParseAzureAdSecurityDetails(string policyXml)
+    private (List<string> applicationIds, List<string> audiences, List<RequiredClaim> requiredClaims) ParseAzureAdSecurityDetails(string policyXml)
     {
         var applicationIds = new List<string>();
         var audiences = new List<string>();
+        var requiredClaims = new List<RequiredClaim>();
         
         try
         {
@@ -535,6 +539,46 @@ public class ApiManagementService : IApiManagementService
                         }
                     }
                 }
+                
+                // Look for required-claims node and its claim child elements
+                var requiredClaimsElements = element.Descendants()
+                    .Where(e => e.Name.LocalName == "required-claims");
+                
+                foreach (var requiredClaimsElement in requiredClaimsElements)
+                {
+                    var claimElements = requiredClaimsElement.Descendants()
+                        .Where(e => e.Name.LocalName == "claim");
+                    
+                    foreach (var claimElement in claimElements)
+                    {
+                        var claimName = claimElement.Attribute("name")?.Value?.Trim();
+                        var claimMatch = claimElement.Attribute("match")?.Value?.Trim() ?? "all";
+                        
+                        if (!string.IsNullOrEmpty(claimName))
+                        {
+                            var claim = new RequiredClaim
+                            {
+                                Name = claimName,
+                                Match = claimMatch
+                            };
+                            
+                            // Get all value elements within the claim
+                            var valueElements = claimElement.Descendants()
+                                .Where(e => e.Name.LocalName == "value");
+                            
+                            foreach (var valueElement in valueElements)
+                            {
+                                var value = valueElement.Value?.Trim();
+                                if (!string.IsNullOrEmpty(value))
+                                {
+                                    claim.Values.Add(value);
+                                }
+                            }
+                            
+                            requiredClaims.Add(claim);
+                        }
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -542,7 +586,7 @@ public class ApiManagementService : IApiManagementService
             _logger.LogWarning(ex, "Error parsing policy XML for Azure AD security details");
         }
         
-        return (applicationIds, audiences);
+        return (applicationIds, audiences, requiredClaims);
     }
 
     public async Task<List<ProductInfo>> GetProductsAsync()
