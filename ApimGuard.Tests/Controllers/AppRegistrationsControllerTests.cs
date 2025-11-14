@@ -177,4 +177,69 @@ public class AppRegistrationsControllerTests
         Assert.NotNull(_controller.TempData["Error"]);
         Assert.Equal("Failed to retrieve app registration.", _controller.TempData["Error"]);
     }
+
+    [Fact]
+    public async Task Index_ReturnsOnlyAppsWithAPIMSECTag()
+    {
+        // Arrange
+        var apps = new List<AppRegistrationInfo>
+        {
+            new AppRegistrationInfo 
+            { 
+                Id = "app1", 
+                DisplayName = "App 1", 
+                Tags = new List<string> { "APIMSEC" } 
+            },
+            new AppRegistrationInfo 
+            { 
+                Id = "app2", 
+                DisplayName = "App 2", 
+                Tags = new List<string> { "APIMSEC", "Production" } 
+            }
+        };
+        _mockGraphApiService.Setup(s => s.GetApplicationsAsync()).ReturnsAsync(apps);
+
+        // Act
+        var result = await _controller.Index();
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsAssignableFrom<List<AppRegistrationInfo>>(viewResult.Model);
+        Assert.Equal(2, model.Count);
+        Assert.All(model, app => Assert.Contains("APIMSEC", app.Tags));
+    }
+
+    [Fact]
+    public async Task Create_CreatesAppWithAPIMSECTag()
+    {
+        // Arrange
+        var displayName = "Test App";
+        var redirectUris = new List<string> { "https://localhost" };
+        var appToCreate = new AppRegistrationInfo
+        {
+            DisplayName = displayName,
+            RedirectUris = redirectUris
+        };
+
+        var createdApp = new AppRegistrationInfo
+        {
+            Id = "new-app-id",
+            AppId = "new-client-id",
+            DisplayName = displayName,
+            RedirectUris = redirectUris,
+            Tags = new List<string> { "APIMSEC" }
+        };
+
+        _mockGraphApiService
+            .Setup(s => s.CreateApplicationAsync(displayName, redirectUris))
+            .ReturnsAsync(createdApp);
+
+        // Act
+        var result = await _controller.Create(appToCreate);
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+        _mockGraphApiService.Verify(s => s.CreateApplicationAsync(displayName, redirectUris), Times.Once);
+    }
 }
