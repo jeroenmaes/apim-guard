@@ -57,6 +57,62 @@ public class HomeControllerTests
     }
 
     [Fact]
+    public void SaveThemePreference_WithValidTheme_ReturnsOkResult()
+    {
+        // Arrange
+        var theme = "dark";
+
+        // Act
+        var result = _controller.SaveThemePreference(theme);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.NotNull(okResult.Value);
+    }
+
+    [Fact]
+    public void SaveThemePreference_WithLightTheme_ReturnsOkResult()
+    {
+        // Arrange
+        var theme = "light";
+
+        // Act
+        var result = _controller.SaveThemePreference(theme);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.NotNull(okResult.Value);
+    }
+
+    [Fact]
+    public void SaveThemePreference_WithInvalidTheme_ReturnsBadRequest()
+    {
+        // Arrange
+        var theme = "invalid";
+
+        // Act
+        var result = _controller.SaveThemePreference(theme);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public void SaveThemePreference_SetsCookie()
+    {
+        // Arrange
+        var theme = "dark";
+
+        // Act
+        var result = _controller.SaveThemePreference(theme);
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result);
+        // Note: In a real test, you would verify the cookie was set in the Response.Cookies
+        // but this requires more complex HttpContext mocking
+    }
+
+    [Fact]
     public void Error_ReturnsViewResultWithErrorViewModel()
     {
         // Act

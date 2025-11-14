@@ -7,6 +7,26 @@
 <h1>@ViewData["Title"]</h1>
 <p>Detailed information about the signed-in user.</p>
 
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Theme Preferences</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label">Dark Mode</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="darkModeToggle">
+                    <label class="form-check-label" for="darkModeToggle">
+                        <span id="themeLabel">Enable Dark Mode</span>
+                    </label>
+                </div>
+                <small class="text-muted">Your theme preference is saved automatically.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h5>User Information</h5>
@@ -44,3 +64,55 @@
 <div class="mt-3">
     <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Back to Home</a>
 </div>
+
+@section Scripts {
+    <script>
+        (function() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const themeLabel = document.getElementById('themeLabel');
+
+            // Set initial state based on current theme
+            function updateToggleState() {
+                const currentTheme = window.getPreferredTheme ? window.getPreferredTheme() : 'light';
+                darkModeToggle.checked = currentTheme === 'dark';
+                updateLabel(currentTheme);
+            }
+
+            function updateLabel(theme) {
+                themeLabel.textContent = theme === 'dark' ? 'Dark Mode Enabled' : 'Enable Dark Mode';
+            }
+
+            // Handle toggle change
+            darkModeToggle.addEventListener('change', function() {
+                const newTheme = this.checked ? 'dark' : 'light';
+                
+                // Update theme immediately
+                if (window.setTheme) {
+                    window.setTheme(newTheme);
+                }
+                updateLabel(newTheme);
+
+                // Save preference to server
+                fetch('@Url.Action("SaveThemePreference", "Home")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ theme: newTheme })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        console.error('Failed to save theme preference');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving theme preference:', error);
+                });
+            });
+
+            // Initialize on page load
+            updateToggleState();
+        })();
+    </script>
+}
