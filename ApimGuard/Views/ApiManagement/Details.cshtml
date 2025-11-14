@@ -93,6 +93,52 @@
                     <span class="badge bg-secondary">Audiences not configured</span>
                 }
             </dd>
+            
+            <dt class="col-sm-3">Required Claims</dt>
+            <dd class="col-sm-9">
+                @if (Model.RequiredClaims != null && Model.RequiredClaims.Any())
+                {
+                    <div class="mt-2">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Claim Name</th>
+                                    <th>Match Type</th>
+                                    <th>Required Values</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var claim in Model.RequiredClaims)
+                                {
+                                    <tr>
+                                        <td><code>@claim.Name</code></td>
+                                        <td><span class="badge bg-info">@claim.Match</span></td>
+                                        <td>
+                                            @if (claim.Values != null && claim.Values.Any())
+                                            {
+                                                <ul class="mb-0 ps-3">
+                                                    @foreach (var value in claim.Values)
+                                                    {
+                                                        <li><code>@value</code></li>
+                                                    }
+                                                </ul>
+                                            }
+                                            else
+                                            {
+                                                <em class="text-muted">No specific values required</em>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">No required claims configured</span>
+                }
+            </dd>
         </dl>
     </div>
 </div>
