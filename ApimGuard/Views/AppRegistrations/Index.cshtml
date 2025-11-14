@@ -17,6 +17,7 @@
             <th>Display Name</th>
             <th>Application ID</th>
             <th>Created Date</th>
+            <th>Tags</th>
             <th>Secrets</th>
             <th>Certificates</th>
             <th>Actions</th>
@@ -29,6 +30,15 @@
                 <td>@app.DisplayName</td>
                 <td><code>@app.AppId</code></td>
                 <td>@app.CreatedDateTime?.ToString("yyyy-MM-dd")</td>
+                <td>
+                    @if (app.Tags.Any())
+                    {
+                        @foreach (var tag in app.Tags)
+                        {
+                            <span class="badge bg-info me-1">@tag</span>
+                        }
+                    }
+                </td>
                 <td>
                     @if (app.HasSecrets)
                     {
