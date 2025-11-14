@@ -23,7 +23,7 @@ public class AuthenticationTests
     }
 
     [Fact]
-    public void HomeController_IndexAction_DoesNotHaveAllowAnonymousAttribute()
+    public void HomeController_IndexAction_HasAllowAnonymousAttribute()
     {
         // Arrange
         var controllerType = typeof(HomeController);
@@ -34,7 +34,7 @@ public class AuthenticationTests
 
         // Assert
         Assert.NotNull(method);
-        Assert.Null(attribute);
+        Assert.NotNull(attribute);
     }
 
     [Fact]

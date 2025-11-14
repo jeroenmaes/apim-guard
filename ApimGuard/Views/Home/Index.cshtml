@@ -5,8 +5,17 @@
 <div class="text-center">
     <h1 class="display-4">Welcome to APIM Guard</h1>
     <p class="lead">Manage your Azure API Management and Entra ID App Registrations in one place</p>
+    
+    @if (User.Identity is null || !User.Identity.IsAuthenticated)
+    {
+        <div class="mt-4">
+            <a asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn" class="btn btn-primary btn-lg">Sign In to Get Started</a>
+        </div>
+    }
 </div>
 
+@if (User.Identity is not null && User.Identity.IsAuthenticated)
+{
 <div class="row mt-5">
     <div class="col-md-4">
         <div class="card">
@@ -51,3 +60,4 @@
         </div>
     </div>
 </div>
+}
