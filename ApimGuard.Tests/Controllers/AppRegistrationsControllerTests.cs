@@ -231,7 +231,9 @@ public class AppRegistrationsControllerTests
         };
 
         _mockGraphApiService
-            .Setup(s => s.CreateApplicationAsync(displayName, redirectUris))
+            .Setup(s => s.CreateApplicationAsync(It.Is<AppRegistrationInfo>(a => 
+                a.DisplayName == displayName && 
+                a.RedirectUris == redirectUris)))
             .ReturnsAsync(createdApp);
 
         // Act
@@ -240,6 +242,8 @@ public class AppRegistrationsControllerTests
         // Assert
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
-        _mockGraphApiService.Verify(s => s.CreateApplicationAsync(displayName, redirectUris), Times.Once);
+        _mockGraphApiService.Verify(s => s.CreateApplicationAsync(It.Is<AppRegistrationInfo>(a => 
+            a.DisplayName == displayName && 
+            a.RedirectUris == redirectUris)), Times.Once);
     }
 }

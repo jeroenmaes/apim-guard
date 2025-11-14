@@ -144,22 +144,44 @@ public class GraphApiService : IGraphApiService
         }
     }
 
-    public async Task<AppRegistrationInfo> CreateApplicationAsync(string displayName, List<string>? redirectUris = null)
+    public async Task<AppRegistrationInfo> CreateApplicationAsync(AppRegistrationInfo appInfo)
     {
         try
         {
             var application = new Application
             {
-                DisplayName = displayName,
+                DisplayName = appInfo.DisplayName,
                 SignInAudience = "AzureADMyOrg",
                 Tags = new List<string> { "APIMSEC" }
             };
 
-            if (redirectUris?.Any() == true)
+            if (appInfo.RedirectUris?.Any() == true)
             {
                 application.Web = new Microsoft.Graph.Models.WebApplication
                 {
-                    RedirectUris = redirectUris
+                    RedirectUris = appInfo.RedirectUris
+                };
+            }
+
+            // Backend API specific configuration
+            if (appInfo.Type == AppRegistrationType.BackendApi)
+            {
+                // Set application ID URI
+                var appIdUri = $"api://{Guid.NewGuid()}";
+                application.IdentifierUris = new List<string> { appIdUri };
+
+                // Create the API.Access app role
+                application.AppRoles = new List<AppRole>
+                {
+                    new AppRole
+                    {
+                        Id = Guid.NewGuid(),
+                        AllowedMemberTypes = new List<string> { "User", "Application" },
+                        Description = "API.Access",
+                        DisplayName = "API.Access",
+                        IsEnabled = true,
+                        Value = "API.Access"
+                    }
                 };
             }
 
@@ -168,21 +190,92 @@ public class GraphApiService : IGraphApiService
             if (createdApp == null)
                 throw new Exception("Failed to create application");
 
+            // Backend API: Set "Assignment required" on the service principal
+            if (appInfo.Type == AppRegistrationType.BackendApi)
+            {
+                // Create service principal for the application
+                var servicePrincipal = new ServicePrincipal
+                {
+                    AppId = createdApp.AppId,
+                    AppRoleAssignmentRequired = true
+                };
+
+                await _graphClient.ServicePrincipals.PostAsync(servicePrincipal);
+            }
+
+            // Consumer API: Add API Permission
+            if (appInfo.Type == AppRegistrationType.ConsumerApi && 
+                !string.IsNullOrEmpty(appInfo.ApiPermissionClientId) && 
+                !string.IsNullOrEmpty(appInfo.ApiPermissionAppRole))
+            {
+                // Find the service principal for the resource API
+                var resourceApp = await _graphClient.Applications
+                    .GetAsync(config =>
+                    {
+                        config.QueryParameters.Filter = $"appId eq '{appInfo.ApiPermissionClientId}'";
+                    });
+
+                var resourceAppObject = resourceApp?.Value?.FirstOrDefault();
+                if (resourceAppObject != null)
+                {
+                    // Find the service principal
+                    var resourceSps = await _graphClient.ServicePrincipals
+                        .GetAsync(config =>
+                        {
+                            config.QueryParameters.Filter = $"appId eq '{appInfo.ApiPermissionClientId}'";
+                        });
+                    
+                    var resourceSp = resourceSps?.Value?.FirstOrDefault();
+                    
+                    if (resourceSp != null && resourceAppObject.AppRoles != null)
+                    {
+                        // Find the specific app role
+                        var appRole = resourceAppObject.AppRoles.FirstOrDefault(r => r.Value == appInfo.ApiPermissionAppRole);
+                        
+                        if (appRole != null && appRole.Id.HasValue)
+                        {
+                            // Add the required resource access
+                            var requiredResourceAccess = new RequiredResourceAccess
+                            {
+                                ResourceAppId = appInfo.ApiPermissionClientId,
+                                ResourceAccess = new List<ResourceAccess>
+                                {
+                                    new ResourceAccess
+                                    {
+                                        Id = appRole.Id.Value,
+                                        Type = "Role"
+                                    }
+                                }
+                            };
+
+                            // Update the application with the required resource access
+                            var updateApp = new Application
+                            {
+                                RequiredResourceAccess = new List<RequiredResourceAccess> { requiredResourceAccess }
+                            };
+
+                            await _graphClient.Applications[createdApp.Id].PatchAsync(updateApp);
+                        }
+                    }
+                }
+            }
+
             return new AppRegistrationInfo
             {
                 Id = createdApp.Id ?? string.Empty,
                 AppId = createdApp.AppId ?? string.Empty,
                 DisplayName = createdApp.DisplayName ?? string.Empty,
                 CreatedDateTime = createdApp.CreatedDateTime?.DateTime,
-                RedirectUris = redirectUris ?? new List<string>(),
+                RedirectUris = appInfo.RedirectUris ?? new List<string>(),
                 HasSecrets = false,
                 HasCertificates = false,
-                Tags = createdApp.Tags?.ToList() ?? new List<string> { "APIMSEC" }
+                Tags = createdApp.Tags?.ToList() ?? new List<string> { "APIMSEC" },
+                Type = appInfo.Type
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating application {DisplayName} in Microsoft Graph", displayName);
+            _logger.LogError(ex, "Error creating application {DisplayName} in Microsoft Graph", appInfo.DisplayName);
             throw;
         }
     }

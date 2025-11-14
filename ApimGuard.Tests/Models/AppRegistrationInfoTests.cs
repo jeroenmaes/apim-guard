@@ -23,6 +23,9 @@ public class AppRegistrationInfoTests
         Assert.False(appInfo.HasCertificates);
         Assert.NotNull(appInfo.Tags);
         Assert.Empty(appInfo.Tags);
+        Assert.Equal(AppRegistrationType.None, appInfo.Type);
+        Assert.Null(appInfo.ApiPermissionClientId);
+        Assert.Null(appInfo.ApiPermissionAppRole);
     }
 
     [Fact]
