@@ -36,15 +36,20 @@ public class GraphApiService : IGraphApiService
             {
                 foreach (var app in applications.Value)
                 {
-                    appList.Add(new AppRegistrationInfo
+                    // Filter: only include apps with the 'APIMSEC' tag
+                    if (app.Tags != null && app.Tags.Contains("APIMSEC"))
                     {
-                        Id = app.Id ?? string.Empty,
-                        AppId = app.AppId ?? string.Empty,
-                        DisplayName = app.DisplayName ?? string.Empty,
-                        CreatedDateTime = app.CreatedDateTime?.DateTime,
-                        HasSecrets = app.PasswordCredentials?.Any() ?? false,
-                        HasCertificates = app.KeyCredentials?.Any() ?? false
-                    });
+                        appList.Add(new AppRegistrationInfo
+                        {
+                            Id = app.Id ?? string.Empty,
+                            AppId = app.AppId ?? string.Empty,
+                            DisplayName = app.DisplayName ?? string.Empty,
+                            CreatedDateTime = app.CreatedDateTime?.DateTime,
+                            HasSecrets = app.PasswordCredentials?.Any() ?? false,
+                            HasCertificates = app.KeyCredentials?.Any() ?? false,
+                            Tags = app.Tags?.ToList() ?? new List<string>()
+                        });
+                    }
                 }
             }
 
@@ -84,7 +89,8 @@ public class GraphApiService : IGraphApiService
                 CreatedDateTime = app.CreatedDateTime?.DateTime,
                 RedirectUris = redirectUris,
                 HasSecrets = app.PasswordCredentials?.Any() ?? false,
-                HasCertificates = app.KeyCredentials?.Any() ?? false
+                HasCertificates = app.KeyCredentials?.Any() ?? false,
+                Tags = app.Tags?.ToList() ?? new List<string>()
             };
         }
         catch (Exception ex)
@@ -127,7 +133,8 @@ public class GraphApiService : IGraphApiService
                 CreatedDateTime = app.CreatedDateTime?.DateTime,
                 RedirectUris = redirectUris,
                 HasSecrets = app.PasswordCredentials?.Any() ?? false,
-                HasCertificates = app.KeyCredentials?.Any() ?? false
+                HasCertificates = app.KeyCredentials?.Any() ?? false,
+                Tags = app.Tags?.ToList() ?? new List<string>()
             };
         }
         catch (Exception ex)
@@ -144,7 +151,8 @@ public class GraphApiService : IGraphApiService
             var application = new Application
             {
                 DisplayName = displayName,
-                SignInAudience = "AzureADMyOrg"
+                SignInAudience = "AzureADMyOrg",
+                Tags = new List<string> { "APIMSEC" }
             };
 
             if (redirectUris?.Any() == true)
@@ -168,7 +176,8 @@ public class GraphApiService : IGraphApiService
                 CreatedDateTime = createdApp.CreatedDateTime?.DateTime,
                 RedirectUris = redirectUris ?? new List<string>(),
                 HasSecrets = false,
-                HasCertificates = false
+                HasCertificates = false,
+                Tags = createdApp.Tags?.ToList() ?? new List<string> { "APIMSEC" }
             };
         }
         catch (Exception ex)

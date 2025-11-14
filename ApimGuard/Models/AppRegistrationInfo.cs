@@ -9,4 +9,5 @@ public class AppRegistrationInfo
     public List<string> RedirectUris { get; set; } = new();
     public bool HasSecrets { get; set; }
     public bool HasCertificates { get; set; }
+    public List<string> Tags { get; set; } = new();
 }
