@@ -92,7 +92,7 @@ public class AppRegistrationsController : Controller
         {
             try
             {
-                var createdApp = await _graphApiService.CreateApplicationAsync(app.DisplayName, app.RedirectUris);
+                var createdApp = await _graphApiService.CreateApplicationAsync(app);
                 _logger.LogInformation("Created app registration: {DisplayName} with ID: {Id}", createdApp.DisplayName, createdApp.Id);
                 return RedirectToAction(nameof(Index));
             }

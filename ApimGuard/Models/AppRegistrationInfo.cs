@@ -10,4 +10,7 @@ public class AppRegistrationInfo
     public bool HasSecrets { get; set; }
     public bool HasCertificates { get; set; }
     public List<string> Tags { get; set; } = new();
+    public AppRegistrationType Type { get; set; } = AppRegistrationType.None;
+    public string? ApiPermissionClientId { get; set; }
+    public string? ApiPermissionAppRole { get; set; }
 }
