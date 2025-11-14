@@ -71,6 +71,31 @@
                     <span class="badge bg-secondary">Not configured</span>
                 }
             </dd>
+
+            <dt class="col-sm-3">Audiences (Parent Applications)</dt>
+            <dd class="col-sm-9">
+                @if (Model.Audiences.Any())
+                {
+                    <span class="badge bg-success">Configured</span>
+                    <div class="mt-2">
+                        <strong>Configured Audiences:</strong>
+                        <ul class="mt-1">
+                            @foreach (var audience in Model.Audiences)
+                            {
+                                <li>
+                                    <a asp-controller="AppRegistrations" asp-action="DetailsByAppId" asp-route-appId="@audience" class="text-decoration-none">
+                                        <code>@audience</code>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Not configured</span>
+                }
+            </dd>
         </dl>
     </div>
 </div>

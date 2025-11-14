@@ -90,8 +90,8 @@ public class ApiManagementService : IApiManagementService
 
             var apiData = api.Value.Data;
             
-            // Get Azure AD application IDs from policy
-            var azureAdClientAppIds = await GetAzureAdClientApplicationIdsFromPolicyAsync(api.Value);
+            // Get Azure AD application IDs and audiences from policy
+            var (azureAdClientAppIds, audiences) = await GetAzureAdSecurityDetailsFromPolicyAsync(api.Value);
             
             return new ApiInfo
             {
@@ -103,7 +103,8 @@ public class ApiManagementService : IApiManagementService
                 ServiceUrl = apiData.ServiceUri?.ToString() ?? string.Empty,
                 Protocols = apiData.Protocols?.Select(p => p.ToString()).ToList() ?? new List<string>(),
                 SubscriptionRequired = apiData.IsSubscriptionRequired ?? false,
-                AzureAdClientApplicationIds = azureAdClientAppIds
+                AzureAdClientApplicationIds = azureAdClientAppIds,
+                Audiences = audiences
             };
         }
         catch (Exception ex)
@@ -434,9 +435,10 @@ public class ApiManagementService : IApiManagementService
         }
     }
 
-    private async Task<List<string>> GetAzureAdClientApplicationIdsFromPolicyAsync(ApiResource api)
+    private async Task<(List<string> applicationIds, List<string> audiences)> GetAzureAdSecurityDetailsFromPolicyAsync(ApiResource api)
     {
         var applicationIds = new List<string>();
+        var audiences = new List<string>();
         
         try
         {
@@ -447,22 +449,25 @@ public class ApiManagementService : IApiManagementService
                 if (policy.Data.Value != null)
                 {
                     // Parse the policy XML to find validate-azure-ad-token elements
-                    applicationIds.AddRange(ParseAzureAdApplicationIds(policy.Data.Value));
+                    var (appIds, auds) = ParseAzureAdSecurityDetails(policy.Data.Value);
+                    applicationIds.AddRange(appIds);
+                    audiences.AddRange(auds);
                 }
             }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error retrieving API policy for {ApiId}", api.Data.Name);
-            // Don't throw - just return empty list if we can't get policies
+            // Don't throw - just return empty lists if we can't get policies
         }
         
-        return applicationIds;
+        return (applicationIds, audiences);
     }
 
-    private List<string> ParseAzureAdApplicationIds(string policyXml)
+    private (List<string> applicationIds, List<string> audiences) ParseAzureAdSecurityDetails(string policyXml)
     {
         var applicationIds = new List<string>();
+        var audiences = new List<string>();
         
         try
         {
@@ -474,26 +479,51 @@ public class ApiManagementService : IApiManagementService
             
             foreach (var element in validateTokenElements)
             {
-                // Look for application-id elements or tenant-id attributes
-                var appIdElements = element.Descendants()
-                    .Where(e => e.Name.LocalName == "application-id");
+                // Look for client-application-ids wrapper and its application-id child elements
+                var clientAppIdsElements = element.Descendants()
+                    .Where(e => e.Name.LocalName == "client-application-ids");
                 
-                foreach (var appIdElement in appIdElements)
+                foreach (var clientAppIdsElement in clientAppIdsElements)
                 {
-                    var appId = appIdElement.Value?.Trim();
-                    if (!string.IsNullOrEmpty(appId))
+                    var appIdElements = clientAppIdsElement.Descendants()
+                        .Where(e => e.Name.LocalName == "application-id");
+                    
+                    foreach (var appIdElement in appIdElements)
                     {
-                        applicationIds.Add(appId);
+                        var appId = appIdElement.Value?.Trim();
+                        if (!string.IsNullOrEmpty(appId))
+                        {
+                            applicationIds.Add(appId);
+                        }
+                    }
+                }
+                
+                // Look for audiences node and its audience child elements
+                var audiencesElements = element.Descendants()
+                    .Where(e => e.Name.LocalName == "audiences");
+                
+                foreach (var audiencesElement in audiencesElements)
+                {
+                    var audienceElements = audiencesElement.Descendants()
+                        .Where(e => e.Name.LocalName == "audience");
+                    
+                    foreach (var audienceElement in audienceElements)
+                    {
+                        var audience = audienceElement.Value?.Trim();
+                        if (!string.IsNullOrEmpty(audience))
+                        {
+                            audiences.Add(audience);
+                        }
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Error parsing policy XML for Azure AD application IDs");
+            _logger.LogWarning(ex, "Error parsing policy XML for Azure AD security details");
         }
         
-        return applicationIds;
+        return (applicationIds, audiences);
     }
 
     public async Task<List<ProductInfo>> GetProductsAsync()

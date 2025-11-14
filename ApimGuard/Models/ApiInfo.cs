@@ -14,6 +14,7 @@ public class ApiInfo
     public bool SubscriptionRequired { get; set; }
     public string AzureAdApplicationId { get; set; } = string.Empty;
     public List<string> AzureAdClientApplicationIds { get; set; } = new();
+    public List<string> Audiences { get; set; } = new();
     public List<ProductInfo> Products { get; set; } = new();
     
     // For API creation from specification
