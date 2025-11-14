@@ -68,22 +68,19 @@
                 }
                 else
                 {
-                    <span class="badge bg-secondary">Not configured</span>
+                    <span class="badge bg-secondary">Client Applications not configured</span>
                 }
-            </dd>
-
-            <dt class="col-sm-3">Audiences (Parent Applications)</dt>
-            <dd class="col-sm-9">
+            
                 @if (Model.Audiences.Any())
                 {
-                    <span class="badge bg-success">Configured</span>
+                   
                     <div class="mt-2">
-                        <strong>Configured Audiences:</strong>
+                        <strong>Configured Parent Application IDs (Audiences):</strong>
                         <ul class="mt-1">
                             @foreach (var audience in Model.Audiences)
                             {
                                 <li>
-                                    <a asp-controller="AppRegistrations" asp-action="DetailsByAppId" asp-route-appId="@audience" class="text-decoration-none">
+                                    <a asp-controller="AppRegistrations" asp-action="DetailsByAppId" asp-route-appId="@audience.Replace("api://","")" class="text-decoration-none">
                                         <code>@audience</code>
                                     </a>
                                 </li>
@@ -93,7 +90,7 @@
                 }
                 else
                 {
-                    <span class="badge bg-secondary">Not configured</span>
+                    <span class="badge bg-secondary">Audiences not configured</span>
                 }
             </dd>
         </dl>
