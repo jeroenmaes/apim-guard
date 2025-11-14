@@ -37,6 +37,10 @@
                 <td>@subscription.CreatedDate?.ToString("yyyy-MM-dd")</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@subscription.Id" class="btn btn-sm btn-info">Details</a>
+                    @if (ViewBag.EnableDeleteOperations)
+                    {
+                        <a asp-action="Delete" asp-route-id="@subscription.Id" class="btn btn-sm btn-danger">Delete</a>
+                    }
                 </td>
             </tr>
         }
