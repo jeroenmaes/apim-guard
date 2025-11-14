@@ -47,6 +47,16 @@ public class HomeControllerTests
     }
 
     [Fact]
+    public void UserProfile_ReturnsViewResult()
+    {
+        // Act
+        var result = _controller.UserProfile();
+
+        // Assert
+        Assert.IsType<ViewResult>(result);
+    }
+
+    [Fact]
     public void Error_ReturnsViewResultWithErrorViewModel()
     {
         // Act
