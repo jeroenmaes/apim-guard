@@ -30,6 +30,26 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpPost]
+    public IActionResult SaveThemePreference(string theme)
+    {
+        if (theme != "light" && theme != "dark")
+        {
+            return BadRequest("Invalid theme value");
+        }
+
+        // Set cookie for 1 year
+        Response.Cookies.Append("theme", theme, new CookieOptions
+        {
+            Expires = DateTimeOffset.UtcNow.AddYears(1),
+            HttpOnly = false, // Allow JavaScript to read the cookie
+            SameSite = SameSiteMode.Lax,
+            Path = "/"
+        });
+
+        return Ok(new { success = true, theme = theme });
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [AllowAnonymous]
     public IActionResult Error()
