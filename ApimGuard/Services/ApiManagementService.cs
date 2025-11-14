@@ -435,6 +435,25 @@ public class ApiManagementService : IApiManagementService
         }
     }
 
+    public async Task DeleteSubscriptionAsync(string id)
+    {
+        try
+        {
+            var apimService = GetApimService();
+            var subscription = await apimService.GetApiManagementSubscriptions().GetAsync(id);
+
+            if (subscription?.Value != null)
+            {
+                await subscription.Value.DeleteAsync(Azure.WaitUntil.Completed, Azure.ETag.All);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting subscription {Id} from Azure API Management", id);
+            throw;
+        }
+    }
+
     private async Task<(List<string> applicationIds, List<string> audiences)> GetAzureAdSecurityDetailsFromPolicyAsync(ApiResource api)
     {
         var applicationIds = new List<string>();

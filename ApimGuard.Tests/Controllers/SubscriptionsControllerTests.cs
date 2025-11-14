@@ -174,4 +174,91 @@ public class SubscriptionsControllerTests
         // Assert
         Assert.IsType<NotFoundResult>(result);
     }
+
+    [Fact]
+    public async Task Delete_Get_ReturnsViewWithSubscription_WhenSubscriptionExists()
+    {
+        // Arrange
+        var subscription = new SubscriptionInfo { Id = "sub1", Name = "sub1", DisplayName = "Subscription 1" };
+        _mockApiManagementService.Setup(s => s.GetSubscriptionAsync("sub1")).ReturnsAsync(subscription);
+
+        // Act
+        var result = await _controller.Delete("sub1");
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<SubscriptionInfo>(viewResult.Model);
+        Assert.Equal("sub1", model.Id);
+    }
+
+    [Fact]
+    public async Task Delete_Get_ReturnsNotFound_WhenSubscriptionDoesNotExist()
+    {
+        // Arrange
+        _mockApiManagementService.Setup(s => s.GetSubscriptionAsync("nonexistent")).ReturnsAsync((SubscriptionInfo?)null);
+
+        // Act
+        var result = await _controller.Delete("nonexistent");
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Delete_Get_ReturnsNotFound_WhenDeleteFeatureFlagIsDisabled()
+    {
+        // Arrange
+        var mockFeatureFlagsDisabled = new Mock<IOptions<FeatureFlags>>();
+        mockFeatureFlagsDisabled.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = false, EnableModifyOperations = true });
+        var controller = new SubscriptionsController(_mockLogger.Object, _mockApiManagementService.Object, mockFeatureFlagsDisabled.Object);
+
+        // Act
+        var result = await controller.Delete("sub1");
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task DeleteConfirmed_RedirectsToIndex_WhenSubscriptionIsDeleted()
+    {
+        // Arrange
+        _mockApiManagementService.Setup(s => s.DeleteSubscriptionAsync("sub1")).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.DeleteConfirmed("sub1");
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+    }
+
+    [Fact]
+    public async Task DeleteConfirmed_RedirectsToIndex_OnException()
+    {
+        // Arrange
+        _mockApiManagementService.Setup(s => s.DeleteSubscriptionAsync("sub1")).ThrowsAsync(new Exception("Test exception"));
+
+        // Act
+        var result = await _controller.DeleteConfirmed("sub1");
+
+        // Assert
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(_controller.Index), redirectResult.ActionName);
+    }
+
+    [Fact]
+    public async Task DeleteConfirmed_ReturnsNotFound_WhenDeleteFeatureFlagIsDisabled()
+    {
+        // Arrange
+        var mockFeatureFlagsDisabled = new Mock<IOptions<FeatureFlags>>();
+        mockFeatureFlagsDisabled.Setup(f => f.Value).Returns(new FeatureFlags { EnableDeleteOperations = false, EnableModifyOperations = true });
+        var controller = new SubscriptionsController(_mockLogger.Object, _mockApiManagementService.Object, mockFeatureFlagsDisabled.Object);
+
+        // Act
+        var result = await controller.DeleteConfirmed("sub1");
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+    }
 }

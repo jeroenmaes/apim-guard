@@ -17,6 +17,7 @@ public interface IApiManagementService
     Task<SubscriptionInfo?> GetSubscriptionAsync(string id);
     Task<SubscriptionInfo> CreateSubscriptionAsync(SubscriptionInfo subscription);
     Task RegenerateSubscriptionKeyAsync(string id, string keyType);
+    Task DeleteSubscriptionAsync(string id);
 
     // Product Management
     Task<List<ProductInfo>> GetProductsAsync();

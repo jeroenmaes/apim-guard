@@ -21,6 +21,7 @@ public class SubscriptionsController : Controller
     // List all subscriptions
     public async Task<IActionResult> Index()
     {
+        ViewBag.EnableDeleteOperations = _featureFlags.EnableDeleteOperations;
         try
         {
             var subscriptions = await _apiManagementService.GetSubscriptionsAsync();
@@ -37,6 +38,7 @@ public class SubscriptionsController : Controller
     public async Task<IActionResult> Details(string id)
     {
         ViewBag.EnableModifyOperations = _featureFlags.EnableModifyOperations;
+        ViewBag.EnableDeleteOperations = _featureFlags.EnableDeleteOperations;
         try
         {
             var subscription = await _apiManagementService.GetSubscriptionAsync(id);
@@ -101,6 +103,52 @@ public class SubscriptionsController : Controller
         {
             _logger.LogError(ex, "Error regenerating {KeyType} key for subscription {Id}", keyType, id);
             return RedirectToAction(nameof(Details), new { id });
+        }
+    }
+
+    // Delete Subscription
+    public async Task<IActionResult> Delete(string id)
+    {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            var subscription = await _apiManagementService.GetSubscriptionAsync(id);
+            if (subscription == null)
+            {
+                return NotFound();
+            }
+            return View(subscription);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving subscription {Id} for deletion", id);
+            return NotFound();
+        }
+    }
+
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(string id)
+    {
+        if (!_featureFlags.EnableDeleteOperations)
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            await _apiManagementService.DeleteSubscriptionAsync(id);
+            _logger.LogInformation("Deleted subscription with ID: {Id}", id);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting subscription {Id}", id);
+            return RedirectToAction(nameof(Index));
         }
     }
 }
